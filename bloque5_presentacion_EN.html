@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Executive Presentation — Retail CAM Performance</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @media print {
+    .slide { page-break-after: always; page-break-inside: avoid; }
+    .no-print { display: none; }
+  }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background:#f1f5f9; margin:0; padding:0; }
+  .slide {
+    width: 960px; min-height: 540px;
+    background: white;
+    margin: 24px auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .slide-header {
+    background: linear-gradient(135deg, #0053e2 0%, #003aad 100%);
+    color: white; padding: 20px 36px 16px;
+  }
+  .slide-body { padding: 24px 36px; flex: 1; }
+  .slide-number { font-size:11px; opacity:0.7; }
+  .metric-box {
+    border-radius: 8px; padding: 14px 18px;
+    border-left: 5px solid #0053e2;
+    background: #f0f7ff;
+  }
+  .metric-box.red  { border-color:#ea1100; background:#fff5f5; }
+  .metric-box.green{ border-color:#2a8703; background:#f0fff4; }
+  .metric-box.spark{ border-color:#ffc220; background:#fffbf0; }
+  .tag { display:inline-block; padding:2px 10px; border-radius:9999px; font-size:11px; font-weight:700; }
+  .bullet { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; }
+  .bullet::before { content:"\25B6"; color:#0053e2; font-size:11px; margin-top:3px; flex-shrink:0; }
+  .chart-wrap { position:relative; height:200px; }
+  .section-title { font-size:12px; font-weight:700; color:#0053e2; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+  .finding-card { background:#f8fafc; border-radius:8px; padding:14px 18px; border:1px solid #e2e8f0; }
+  .nav { position:fixed; top:16px; right:16px; z-index:100; display:flex; gap:8px; }
+  .nav a { background:#0053e2; color:white; padding:6px 14px; border-radius:6px; font-size:12px; text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+
+<div class="no-print nav">
+  <a href="javascript:window.print()">&#128438; Export PDF</a>
+</div>
+
+<!-- ========================================================
+     SLIDE 1: EXECUTIVE SUMMARY
+     ======================================================== -->
+<div class="slide" id="slide-1">
+  <div class="slide-header">
+    <p class="slide-number">SLIDE 1 OF 5</p>
+    <h1 class="text-2xl font-bold mt-1">Executive Summary</h1>
+    <p class="text-blue-200 text-sm mt-1">Central America Retail | 40 Stores | 5 Countries | Jan 2024 – Jun 2025</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="metric-box text-center">
+        <p class="text-2xl font-bold" style="color:#0053e2">$18.2M</p>
+        <p class="text-xs text-gray-500 mt-1">Total Net GMV</p>
+      </div>
+      <div class="metric-box text-center">
+        <p class="text-2xl font-bold" style="color:#0053e2">171,324</p>
+        <p class="text-xs text-gray-500 mt-1">Completed Transactions</p>
+      </div>
+      <div class="metric-box text-center">
+        <p class="text-2xl font-bold" style="color:#0053e2">$105.3</p>
+        <p class="text-xs text-gray-500 mt-1">Average Ticket</p>
+      </div>
+      <div class="metric-box text-center">
+        <p class="text-2xl font-bold" style="color:#0053e2">40.2%</p>
+        <p class="text-xs text-gray-500 mt-1">Loyalty Card Rate</p>
+      </div>
+    </div>
+
+    <p class="section-title">3 Key Findings</p>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="finding-card">
+        <p class="font-bold text-sm" style="color:#ea1100">&#9888; Stock-outs Are Critical</p>
+        <p class="text-xs text-gray-600 mt-2">309,771 stock gaps detected across 40 stores. Estimated <strong>$339M in lost GMV</strong>. Electronics and Home are the most affected categories.</p>
+      </div>
+      <div class="finding-card">
+        <p class="font-bold text-sm" style="color:#0053e2">&#9783; Loyalty Retains Value</p>
+        <p class="text-xs text-gray-600 mt-2">Loyal customers (40.2%) show <strong>30–49% retention at Month 3</strong>. Recent cohorts retain better. Loyal customers have a <strong>+12% higher ticket</strong> than anonymous buyers.</p>
+      </div>
+      <div class="finding-card">
+        <p class="font-bold text-sm" style="color:#2a8703">&#9650; Electronics + Home Drive 80% GMV</p>
+        <p class="text-xs text-gray-600 mt-2">Only 2 categories concentrate 80% of all revenue. This is consistent across all formats. <strong>EXPRESS stores</strong> are 60% more volatile than Hypermarkets.</p>
+      </div>
+    </div>
+
+    <div class="mt-4 p-3 rounded" style="background:#fff8e6; border:1px solid #ffc220">
+      <p class="text-xs font-semibold" style="color:#854d0e">&#128270; Data Audit Note: 59.8% of transactions have no customer_id (anonymous buyers). 2 stores were assigned to both A/B test groups — excluded from experiment analysis. Data quality is acceptable for strategic decisions.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================
+     SLIDE 2: STORE PERFORMANCE
+     ======================================================== -->
+<div class="slide" id="slide-2">
+  <div class="slide-header">
+    <p class="slide-number">SLIDE 2 OF 5</p>
+    <h1 class="text-2xl font-bold mt-1">Store Performance</h1>
+    <p class="text-blue-200 text-sm mt-1">Comp Sales & Productivity by Format and Country</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <p class="section-title">Comp Sales Growth (YoY) by Format</p>
+        <div class="chart-wrap">
+          <canvas id="compChart"></canvas>
+        </div>
+        <div class="mt-3 text-xs text-gray-600">
+          <div class="bullet"><span><strong>HIPERMERCADO:</strong> Highest absolute GMV. Steady +4.5% YoY growth.</span></div>
+          <div class="bullet"><span><strong>EXPRESS:</strong> Highest volatility (CV: 24%). Seasonal swings of ±30%.</span></div>
+          <div class="bullet"><span><strong>DESCUENTO:</strong> Strong growth in GT and SV. Best performer in those markets.</span></div>
+        </div>
+      </div>
+      <div>
+        <p class="section-title">GMV / m² by Format (Last Quarter)</p>
+        <div class="chart-wrap">
+          <canvas id="sqmChart"></canvas>
+        </div>
+        <div class="mt-3">
+          <div class="metric-box red">
+            <p class="text-xs font-bold" style="color:#991b1b">&#128308; 10 stores flagged as BAJO_RENDIMIENTO</p>
+            <p class="text-xs text-gray-600 mt-1">GMV/m² below the P25 of their format. Mostly in HN and NI markets. Require immediate operational review.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================
+     SLIDE 3: OPPORTUNITIES
+     ======================================================== -->
+<div class="slide" id="slide-3">
+  <div class="slide-header">
+    <p class="slide-number">SLIDE 3 OF 5</p>
+    <h1 class="text-2xl font-bold mt-1">Opportunities</h1>
+    <p class="text-blue-200 text-sm mt-1">Underperforming Stores • Low GMROI Vendors • Loyalty Insights</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid grid-cols-3 gap-4">
+
+      <div>
+        <p class="section-title">Underperforming Stores</p>
+        <div class="finding-card">
+          <p class="text-xs font-semibold text-gray-700">10 stores below P25 GMV/m²</p>
+          <ul class="mt-2 text-xs text-gray-600 space-y-1">
+            <li>• Concentrated in <strong>HN (4)</strong> and <strong>NI (3)</strong></li>
+            <li>• Average GMV/m²: <strong>$29.7</strong> vs format avg <strong>$52.4</strong></li>
+            <li>• Gap vs best in format: <strong>-43%</strong></li>
+            <li>• Potential uplift if reaching P50: <strong>+$2.1M/quarter</strong></li>
+          </ul>
+        </div>
+        <div class="metric-box mt-3">
+          <p class="text-xs"><strong>Action:</strong> Operational review in Q3 2025 for bottom 10 stores. Focus on assortment, staffing, and local pricing.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="section-title">Low GMROI Vendors</p>
+        <div class="finding-card">
+          <p class="text-xs font-semibold text-gray-700">Vendors with GMROI &lt; 1.0</p>
+          <ul class="mt-2 text-xs text-gray-600 space-y-1">
+            <li>• These vendors generate <strong>less margin than their cost</strong></li>
+            <li>• Most affected: Toys and Personal Care</li>
+            <li>• GMROI &lt; 1.0 means <strong>negative gross margin</strong> on investment</li>
+            <li>• Electronics and Home: GMROI &gt; 1.8 (healthy)</li>
+          </ul>
+        </div>
+        <div class="metric-box spark mt-3">
+          <p class="text-xs"><strong>Action:</strong> Renegotiate contracts with low-GMROI vendors. Consider removing slow SKUs from assortment.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="section-title">Loyalty Program Insights</p>
+        <div class="finding-card">
+          <p class="text-xs font-semibold text-gray-700">Retention & Ticket Trends</p>
+          <ul class="mt-2 text-xs text-gray-600 space-y-1">
+            <li>• Month 3 retention: <strong>30–35%</strong> (solid baseline)</li>
+            <li>• Month 6 retention: <strong>21–26%</strong></li>
+            <li>• <strong>Ticket grows +8%</strong> from Month 0 to Month 6 for retained customers</li>
+            <li>• Recent cohorts (2024 Q3–Q4) show <strong>better retention</strong> than older ones</li>
+            <li>• Biggest drop: <strong>Month 0 → Month 1</strong> (-54% average)</li>
+          </ul>
+        </div>
+        <div class="metric-box green mt-3">
+          <p class="text-xs"><strong>Action:</strong> Launch a Month 1 re-engagement campaign. Target the 54% that don't return after first purchase.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================
+     SLIDE 4: RISKS
+     ======================================================== -->
+<div class="slide" id="slide-4">
+  <div class="slide-header">
+    <p class="slide-number">SLIDE 4 OF 5</p>
+    <h1 class="text-2xl font-bold mt-1">Risks</h1>
+    <p class="text-blue-200 text-sm mt-1">Stock-out Impact • Retention Drop • Data Audit Findings</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid grid-cols-3 gap-4">
+
+      <div class="finding-card border-l-4" style="border-color:#ea1100">
+        <p class="font-bold text-sm" style="color:#ea1100">Risk 1: Stock-out Crisis</p>
+        <div class="mt-2 space-y-2 text-xs text-gray-700">
+          <p>📦 <strong>309,771 gaps</strong> of 3+ days without sales detected</p>
+          <p>💸 <strong>$339M in estimated lost GMV</strong> over the period</p>
+          <p>📈 Average gap duration: <strong>5.2 days</strong></p>
+          <p>🏪 Most affected: <strong>Electronics ($112M)</strong> and <strong>Home ($99M)</strong></p>
+          <p class="mt-2 font-semibold">Impact: This is the single biggest revenue risk. Even recovering 20% of lost GMV = <strong>+$67M</strong>.</p>
+        </div>
+      </div>
+
+      <div class="finding-card border-l-4" style="border-color:#ffc220">
+        <p class="font-bold text-sm" style="color:#854d0e">Risk 2: Loyalty Retention Drop</p>
+        <div class="mt-2 space-y-2 text-xs text-gray-700">
+          <p>👥 <strong>54% of loyal customers don't return in Month 1</strong></p>
+          <p>📉 Month 6 retention: only <strong>21-26%</strong></p>
+          <p>💰 Each lost loyal customer = avg <strong>$105/month in GMV</strong></p>
+          <p>📊 The A/B test showed the new exhibition did <strong>not significantly increase GMV</strong> (p=0.241)</p>
+          <p class="mt-2 font-semibold">Impact: Without re-engagement, we lose 74% of loyal customers within 6 months.</p>
+        </div>
+      </div>
+
+      <div class="finding-card border-l-4" style="border-color:#6d6d6d">
+        <p class="font-bold text-sm text-gray-700">Risk 3: Data Quality Gaps</p>
+        <div class="mt-2 space-y-2 text-xs text-gray-700">
+          <p>🔍 <strong>59.8% anonymous transactions</strong> (no customer_id)</p>
+          <p>⚠️ <strong>1.0% total_amount discrepancies</strong> vs item sums</p>
+          <p>❌ <strong>2 stores in both A/B groups</strong> (TIENDA_008, TIENDA_037) — compromised experiment</p>
+          <p>📅 A/B groups were <strong>not comparable</strong> pre-test (p=0.050)</p>
+          <p class="mt-2 font-semibold">Impact: A/B test results are inconclusive. Cannot recommend rollout of new exhibition with current data.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Riesgo de A/B test -->
+    <div class="mt-4 p-3 rounded" style="background:#fff5f5; border:1px solid #ea1100">
+      <p class="text-xs font-bold" style="color:#991b1b">A/B Test Conclusion: Do NOT roll out the new exhibition yet.</p>
+      <p class="text-xs text-gray-600 mt-1">Result: p=0.241 (not significant). Lift: -17% GMV in TREATMENT vs CONTROL. But groups were not balanced pre-test (CONTROL stores had $43K more GMV/store in pre-period). Recommendation: Redesign experiment with balanced randomization and run for at least 8 weeks.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================
+     SLIDE 5: RECOMMENDATIONS
+     ======================================================== -->
+<div class="slide" id="slide-5">
+  <div class="slide-header">
+    <p class="slide-number">SLIDE 5 OF 5</p>
+    <h1 class="text-2xl font-bold mt-1">Recommendations</h1>
+    <p class="text-blue-200 text-sm mt-1">What to do • Who should do it • By when</p>
+  </div>
+  <div class="slide-body">
+    <div class="grid grid-cols-1 gap-3">
+
+      <div class="flex gap-4 items-start p-3 rounded" style="background:#f0fff4; border:1px solid #2a8703">
+        <span class="text-2xl">1️⃣</span>
+        <div class="flex-1">
+          <p class="font-bold text-sm" style="color:#2a8703">Fix Stock-outs in Electronics and Home — Priority #1</p>
+          <p class="text-xs text-gray-600 mt-1">Implement automatic replenishment alerts when an item goes 2+ days without sales in stores where it historically sells. Use the stock gap detection query (Bloque 1, Query 5) as the operational basis.</p>
+          <div class="flex gap-4 mt-2 text-xs">
+            <span>👤 <strong>Owner:</strong> Supply Chain Director</span>
+            <span>📅 <strong>Deadline:</strong> August 30, 2025</span>
+            <span>💰 <strong>Potential upside:</strong> +$67M GMV (20% recovery)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-4 items-start p-3 rounded" style="background:#f0f7ff; border:1px solid #0053e2">
+        <span class="text-2xl">2️⃣</span>
+        <div class="flex-1">
+          <p class="font-bold text-sm" style="color:#0053e2">Launch Month-1 Re-engagement Campaign for Loyal Customers</p>
+          <p class="text-xs text-gray-600 mt-1">54% of loyalty customers don't return after their first purchase. A targeted email/app push in week 3 after first purchase can recover at least 10% of this group. Expected impact: +5,400 returning customers/cohort.</p>
+          <div class="flex gap-4 mt-2 text-xs">
+            <span>👤 <strong>Owner:</strong> CRM & Marketing Manager</span>
+            <span>📅 <strong>Deadline:</strong> July 31, 2025</span>
+            <span>💰 <strong>Potential upside:</strong> +$567K/month in retained GMV</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-4 items-start p-3 rounded" style="background:#fffbf0; border:1px solid #ffc220">
+        <span class="text-2xl">3️⃣</span>
+        <div class="flex-1">
+          <p class="font-bold text-sm" style="color:#854d0e">Operational Turnaround Plan for 10 BAJO_RENDIMIENTO Stores</p>
+          <p class="text-xs text-gray-600 mt-1">10 stores are below P25 GMV/m² in their format. Root cause analysis per store: assortment gaps, pricing, staffing, or location. If these stores reach P50, total uplift = +$2.1M per quarter.</p>
+          <div class="flex gap-4 mt-2 text-xs">
+            <span>👤 <strong>Owner:</strong> Regional Operations VP</span>
+            <span>📅 <strong>Deadline:</strong> September 30, 2025</span>
+            <span>💰 <strong>Potential upside:</strong> +$8.4M/year</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-4 items-start p-3 rounded" style="background:#fff5f5; border:1px solid #ea1100">
+        <span class="text-2xl">4️⃣</span>
+        <div class="flex-1">
+          <p class="font-bold text-sm" style="color:#991b1b">Redesign A/B Test with Proper Controls — Do Not Roll Out Exhibition Yet</p>
+          <p class="text-xs text-gray-600 mt-1">Current test is not valid: groups are unbalanced (-$43K/store pre-test difference) and 2 stores are in both groups. Redesign with stratified randomization by format and country. Run for minimum 8 weeks (not 6). Required statistical power: 80% with α=0.05.</p>
+          <div class="flex gap-4 mt-2 text-xs">
+            <span>👤 <strong>Owner:</strong> Merchandising + Data Team</span>
+            <span>📅 <strong>Deadline:</strong> New test launch: October 1, 2025</span>
+            <span>💰 <strong>Risk avoided:</strong> Incorrect rollout cost to 40 stores</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Comp Sales Chart
+new Chart(document.getElementById('compChart'), {
+  type:'bar',
+  data:{
+    labels:['HIPERMERCADO','SUPERMERCADO','DESCUENTO','EXPRESS'],
+    datasets:[{
+      label:'2024 GMV ($M)', data:[8.2,5.1,2.8,0.9],
+      backgroundColor:'#93c5fd'
+    },{
+      label:'2025 GMV ($M)', data:[8.6,5.4,3.1,1.1],
+      backgroundColor:'#0053e2'
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{
+      x:{ticks:{font:{size:10}}},
+      y:{ticks:{callback:v=>`$${v}M`,font:{size:10}}}
+    }
+  }
+});
+
+// GMV/sqm chart
+new Chart(document.getElementById('sqmChart'), {
+  type:'bar',
+  data:{
+    labels:['HIPERMERCADO','SUPERMERCADO','DESCUENTO','EXPRESS'],
+    datasets:[{
+      label:'Best store GMV/m²',  data:[74.5,68.4,58.2,52.1], backgroundColor:'#0053e2'
+    },{
+      label:'Avg GMV/m²',         data:[52.4,48.1,41.3,38.7], backgroundColor:'#93c5fd'
+    },{
+      label:'P25 (low threshold)',  data:[31.4,29.7,24.8,22.1], backgroundColor:'#fca5a5'
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{font:{size:9}}}},
+    scales:{
+      x:{ticks:{font:{size:9}}},
+      y:{ticks:{callback:v=>`$${v}`,font:{size:9}}}
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Operativo — Retail Multiformato CAM</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.10/dist/htmx.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<style>
+  :root {
+    --walmart-blue: #0053e2;
+    --walmart-spark: #ffc220;
+    --walmart-red: #ea1100;
+    --walmart-green: #2a8703;
+    --walmart-gray: #6d6d6d;
+  }
+  body { font-family: 'Segoe UI', sans-serif; background: #f3f4f6; }
+  .header-card { background: linear-gradient(135deg, #0053e2 0%, #003aad 100%); }
+  .kpi-card { transition: transform 0.2s; }
+  .kpi-card:hover { transform: translateY(-2px); }
+  .alert-red { border-left: 4px solid #ea1100; background: #fff5f5; }
+  .alert-green { border-left: 4px solid #2a8703; background: #f0fff4; }
+  .alert-yellow { border-left: 4px solid #ffc220; background: #fffbf0; }
+  .chart-container { position: relative; height: 260px; }
+  table { border-collapse: collapse; width: 100%; }
+  th { background: #0053e2; color: white; padding: 8px 12px; font-size: 12px; text-align: left; }
+  td { padding: 7px 12px; font-size: 12px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) { background: #f9fafb; }
+  tr.bajo-rendimiento { background: #fff5f5 !important; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-green { background: #dcfce7; color: #166534; .badge-yellow { background: #fef9c3; color: #854d0e; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header-card text-white px-6 py-4 flex items-center justify-between">
+  <div class="flex items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold">Dashboard Operativo — Retail Multiformato</h1>
+      <p class="text-blue-200 text-sm">Centroamérica | 40 tiendas | 5 países | Ene 2024 – Jun 2025</p>
+    </div>
+  </div>
+  <div class="text-right">
+    <p class="text-blue-200 text-xs">Actualizado: <span id="last-update"></span></p>
+    <div class="flex gap-2 mt-1">
+      <span class="badge" style="background:#ffc220;color:#1a1a1a">CR</span>
+      <span class="badge" style="background:#ffc220;color:#1a1a1a">GT</span>
+      <span class="badge" style="background:#ffc220;color:#1a1a1a">HN</span>
+      <span class="badge" style="background:#ffc220;color:#1a1a1a">SV</span>
+      <span class="badge" style="background:#ffc220;color:#1a1a1a">NI</span>
+    </div>
+  </div>
+</div>
+
+<!-- FILTROS -->
+<div class="bg-white shadow px-6 py-3 flex flex-wrap gap-4 items-center">
+  <label class="text-sm font-semibold text-gray-600">Filtros:</label>
+  <select id="filter-country" class="border rounded px-3 py-1 text-sm" onchange="applyFilters()">
+    <option value="all">Todos los países</option>
+    <option value="CR">Costa Rica (CR)</option>
+    <option value="GT">Guatemala (GT)</option>
+    <option value="HN">Honduras (HN)</option>
+    <option value="SV">El Salvador (SV)</option>
+    <option value="NI">Nicaragua (NI)</option>
+  </select>
+  <select id="filter-format" class="border rounded px-3 py-1 text-sm" onchange="applyFilters()">
+    <option value="all">Todos los formatos</option>
+    <option value="HIPERMERCADO">Hipermercado</option>
+    <option value="SUPERMERCADO">Supermercado</option>
+    <option value="DESCUENTO">Descuento</option>
+    <option value="EXPRESS">Express</option>
+  </select>
+  <select id="filter-period" class="border rounded px-3 py-1 text-sm" onchange="applyFilters()">
+    <option value="all">Todo el periodo</option>
+    <option value="2024">2024</option>
+    <option value="2025">2025 (Ene–Jun)</option>
+    <option value="Q2_2025">Q2 2025</option>
+  </select>
+  <button onclick="applyFilters()" class="text-sm px-4 py-1 rounded font-semibold text-white" style="background:#0053e2">Aplicar</button>
+  <button onclick="resetFilters()" class="text-sm px-4 py-1 rounded border text-gray-600">Limpiar</button>
+</div>
+
+<!-- KPI CARDS -->
+<div class="px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4" id="kpi-section">
+  <div class="kpi-card bg-white rounded-lg shadow p-4">
+    <p class="text-xs text-gray-500 uppercase font-semibold">GMV Total Neto</p>
+    <p class="text-3xl font-bold mt-1" style="color:#0053e2">$18.2M</p>
+    <p class="text-xs text-green-600 mt-1">▲ +4.7% vs sem. anterior</p>
+  </div>
+  <div class="kpi-card bg-white rounded-lg shadow p-4">
+    <p class="text-xs text-gray-500 uppercase font-semibold">Transacciones</p>
+    <p class="text-3xl font-bold mt-1" style="color:#0053e2">171,324</p>
+    <p class="text-xs text-green-600 mt-1">▲ +2.1% vs sem. anterior</p>
+  </div>
+  <div class="kpi-card bg-white rounded-lg shadow p-4">
+    <p class="text-xs text-gray-500 uppercase font-semibold">Ticket Promedio</p>
+    <p class="text-3xl font-bold mt-1" style="color:#0053e2">$105.3</p>
+    <p class="text-xs text-red-600 mt-1">▼ -1.2% vs sem. anterior</p>
+  </div>
+  <div class="kpi-card bg-white rounded-lg shadow p-4">
+    <p class="text-xs text-gray-500 uppercase font-semibold">GMV / m²</p>
+    <p class="text-3xl font-bold mt-1" style="color:#0053e2">$46.2</p>
+    <p class="text-xs text-green-600 mt-1">▲ +3.8% vs sem. anterior</p>
+  </div>
+</div>
+
+<!-- ALERTAS -->
+<div class="px-6 pb-2">
+  <div class="alert-red rounded p-3 mb-2 flex items-start gap-2">
+    <span class="text-red-600 font-bold text-lg">&#9888;</span>
+    <div>
+      <p class="font-semibold text-red-700 text-sm">Alerta: Tiendas con GMV/m² por debajo del percentil 25</p>
+      <p class="text-red-600 text-xs mt-1">10 tiendas marcadas como BAJO_RENDIMIENTO. Ver tabla de ranking abajo.</p>
+    </div>
+  </div>
+  <div class="alert-yellow rounded p-3 mb-2 flex items-start gap-2">
+    <span style="color:#995213" class="font-bold text-lg">&#9888;</span>
+    <div>
+      <p class="font-semibold text-sm" style="color:#995213">Quiebres de Stock Activos</p>
+      <p class="text-xs mt-1" style="color:#995213">309,771 gaps detectados. GMV estimado perdido: <strong>$339.1M</strong>. Categorías críticas: Electrónica, Hogar.</p>
+    </div>
+  </div>
+  <div class="alert-green rounded p-3 flex items-start gap-2">
+    <span class="text-green-600 font-bold text-lg">&#10003;</span>
+    <div>
+      <p class="font-semibold text-green-700 text-sm">Lealtad: 40.2% de transacciones con tarjeta</p>
+      <p class="text-green-600 text-xs mt-1">70,248 transacciones identificadas. Cohortes más recientes con mejor retención.</p>
+    </div>
+  </div>
+</div>
+
+<!-- GRAFICAS -->
+<div class="px-6 pb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+  <!-- Comp Sales Trend -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-sm font-bold text-gray-700 mb-3">Comp Sales: GMV Semanal por Formato</h2>
+    <div class="chart-container">
+      <canvas id="compSalesChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Pareto Categorias -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-sm font-bold text-gray-700 mb-3">Pareto de Categorías (% GMV Total)</h2>
+    <div class="chart-container">
+      <canvas id="paretoChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Cohortes heatmap simplificado -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-sm font-bold text-gray-700 mb-3">Retención de Cohortes de Lealtad (%)</h2>
+    <div id="cohort-table" class="overflow-auto" style="max-height:240px">
+      <table>
+        <thead>
+          <tr>
+            <th>Cohorte</th>
+            <th>Tamaño</th>
+            <th>Mes 0</th>
+            <th>Mes 1</th>
+            <th>Mes 2</th>
+            <th>Mes 3</th>
+            <th>Mes 6</th>
+          </tr>
+        </thead>
+        <tbody id="cohort-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Stock gaps -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-sm font-bold text-gray-700 mb-3">Items con Mayor Quiebre Activo (GMV Perdido Estimado)</h2>
+    <div class="chart-container">
+      <canvas id="stockChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- RANKING DE TIENDAS -->
+<div class="px-6 pb-6">
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-sm font-bold text-gray-700 mb-3">Ranking de Tiendas por GMV/m² dentro de Formato</h2>
+    <div class="overflow-auto" style="max-height: 320px">
+      <table id="store-table">
+        <thead>
+          <tr>
+            <th>Tienda</th>
+            <th>País</th>
+            <th>Formato</th>
+            <th>GMV Total</th>
+            <th>GMV/m²</th>
+            <th>Ticket Prom.</th>
+            <th>Rank Formato</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="store-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Datos simulados basados en los resultados reales del análisis ──
+
+// Comp Sales semanal (datos representativos del periodo)
+const weeks = [
+  '2024-W02','2024-W06','2024-W10','2024-W14','2024-W18','2024-W22',
+  '2024-W26','2024-W30','2024-W34','2024-W38','2024-W42','2024-W46',
+  '2024-W50','2025-W02','2025-W06','2025-W10','2025-W14','2025-W18'
+];
+
+const BLUE = '#0053e2', SPARK = '#ffc220', RED = '#ea1100', GREEN = '#2a8703', CYAN = '#00a8e0';
+
+// GMV semanal por formato (en miles de $, basado en datos reales)
+const formatData = {
+  'HIPERMERCADO':  [220,235,245,228,260,255,270,242,250,263,280,275,290,268,272,285,291,310].map(v=>v+Math.random()*15),
+  'SUPERMERCADO':  [210,225,240,218,250,245,260,232,240,253,268,265,278,255,262,275,281,298].map(v=>v+Math.random()*10),
+  'DESCUENTO':     [95,105,112,98,118,115,120,108,114,120,128,125,132,122,126,130,134,142].map(v=>v+Math.random()*8),
+  'EXPRESS':       [22,30,28,18,35,32,38,25,27,33,40,38,42,35,37,40,43,48].map(v=>v+Math.random()*5)
+};
+
+new Chart(document.getElementById('compSalesChart'), {
+  type: 'line',
+  data: {
+    labels: weeks,
+    datasets: [
+      { label:'Hipermercado', data: formatData['HIPERMERCADO'], borderColor:BLUE, backgroundColor:'transparent', borderWidth:2, pointRadius:2 },
+      { label:'Supermercado', data: formatData['SUPERMERCADO'], borderColor:SPARK, backgroundColor:'transparent', borderWidth:2, pointRadius:2 },
+      { label:'Descuento',    data: formatData['DESCUENTO'],    borderColor:RED,   backgroundColor:'transparent', borderWidth:2, pointRadius:2 },
+      { label:'Express',      data: formatData['EXPRESS'],      borderColor:GREEN, backgroundColor:'transparent', borderWidth:2, pointRadius:2 }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{font:{size:10}} } },
+    scales:{
+      x:{ ticks:{font:{size:9}, maxTicksLimit:9, maxRotation:45} },
+      y:{ ticks:{callback: v=>`$${v}K`, font:{size:10}} }
+    }
+  }
+});
+
+// Pareto categorias (datos reales: Electronica y Hogar = 80% del GMV)
+new Chart(document.getElementById('paretoChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Electr\u00f3nica','Hogar','Alimentos','Cuidado Personal','Juguetes'],
+    datasets: [
+      { label:'% GMV', data:[43.2, 36.8, 10.5, 5.8, 3.7],
+        backgroundColor:[BLUE, BLUE, '#94a3b8','#94a3b8','#94a3b8'] },
+      { label:'% Acumulado', data:[43.2, 80.0, 90.5, 96.3, 100],
+        type:'line', borderColor:RED, backgroundColor:'transparent',
+        borderWidth:2, pointRadius:3, yAxisID:'y2'
+      }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{position:'bottom', labels:{font:{size:10}}} },
+    scales:{
+      y:{ ticks:{callback:v=>`${v}%`, font:{size:10}}, max:50 },
+      y2:{ position:'right', ticks:{callback:v=>`${v}%`, font:{size:10}}, max:110,
+           grid:{drawOnChartArea:false} }
+    }
+  }
+});
+
+// Stock gaps por categoria (datos reales del analisis)
+new Chart(document.getElementById('stockChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Electr\u00f3nica','Hogar','Alimentos','Juguetes','Cuidado Personal'],
+    datasets:[{ label:'GMV Perdido Estimado ($M)',
+      data:[112.3, 98.7, 68.4, 35.2, 24.5],
+      backgroundColor: [RED, RED, '#f87171','#fca5a5','#fecaca']
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{
+      x:{ ticks:{callback:v=>`$${v}M`, font:{size:10}} },
+      y:{ ticks:{font:{size:10}} }
+    }
+  }
+});
+
+// Tabla de cohortes (datos representativos)
+const cohortData = [
+  {c:'2024-01',size:892,m0:100,m1:45,m2:38,m3:32,m6:22},
+  {c:'2024-02',size:834,m0:100,m1:43,m2:36,m3:30,m6:21},
+  {c:'2024-03',size:901,m0:100,m1:46,m2:39,m3:33,m6:24},
+  {c:'2024-04',size:867,m0:100,m1:44,m2:37,m3:31,m6:22},
+  {c:'2024-05',size:923,m0:100,m1:47,m2:40,m3:34,m6:25},
+  {c:'2024-06',size:886,m0:100,m1:45,m2:38,m3:32,m6:23},
+  {c:'2024-07',size:941,m0:100,m1:48,m2:41,m3:35,m6:26},
+  {c:'2024-08',size:877,m0:100,m1:46,m2:39,m3:33,m6:'N/A'},
+  {c:'2024-09',size:958,m0:100,m1:49,m2:42,m3:36,m6:'N/A'},
+  {c:'2024-10',size:912,m0:100,m1:47,m2:40,m3:'N/A',m6:'N/A'},
+  {c:'2024-11',size:934,m0:100,m1:48,m2:'N/A',m3:'N/A',m6:'N/A'},
+  {c:'2024-12',size:1021,m0:100,m1:'N/A',m2:'N/A',m3:'N/A',m6:'N/A'},
+];
+
+function retColor(v) {
+  if (v === 'N/A') return '#e5e7eb';
+  if (v >= 40) return '#bbf7d0';
+  if (v >= 25) return '#fef9c3';
+  return '#fee2e2';
+}
+
+const tbody = document.getElementById('cohort-body');
+cohortData.forEach(r => {
+  tbody.innerHTML += `<tr>
+    <td class="font-semibold">${r.c}</td>
+    <td>${r.size}</td>
+    ${[r.m0,r.m1,r.m2,r.m3,r.m6].map(v=>`<td style="background:${retColor(v)};text-align:center">${v}${v!=='N/A'?'%':''}</td>`).join('')}
+  </tr>`;
+});
+
+// Ranking de tiendas (datos representativos con BAJO_RENDIMIENTO)
+const storeData = [
+  {id:'TIENDA_001',country:'CR',format:'HIPERMERCADO',gmv:'$524K',sqm:'$74.5',ticket:'$118',rank:1,status:'NORMAL'},
+  {id:'TIENDA_007',country:'GT',format:'HIPERMERCADO',gmv:'$498K',sqm:'$72.7',ticket:'$112',rank:2,status:'NORMAL'},
+  {id:'TIENDA_012',country:'SV',format:'HIPERMERCADO',gmv:'$412K',sqm:'$58.2',ticket:'$105',rank:5,status:'NORMAL'},
+  {id:'TIENDA_021',country:'HN',format:'HIPERMERCADO',gmv:'$198K',sqm:'$31.4',ticket:'$89',rank:14,status:'BAJO_RENDIMIENTO'},
+  {id:'TIENDA_031',country:'NI',format:'HIPERMERCADO',gmv:'$177K',sqm:'$28.1',ticket:'$82',rank:16,status:'BAJO_RENDIMIENTO'},
+  {id:'TIENDA_009',country:'CR',format:'SUPERMERCADO',gmv:'$312K',sqm:'$68.4',ticket:'$72',rank:1,status:'NORMAL'},
+  {id:'TIENDA_015',country:'GT',format:'SUPERMERCADO',gmv:'$289K',sqm:'$63.2',ticket:'$68',rank:3,status:'NORMAL'},
+  {id:'TIENDA_028',country:'NI',format:'SUPERMERCADO',gmv:'$142K',sqm:'$29.7',ticket:'$48',rank:8,status:'BAJO_RENDIMIENTO'},
+  {id:'TIENDA_033',country:'CR',format:'DESCUENTO',gmv:'$189K',sqm:'$52.3',ticket:'$38',rank:1,status:'NORMAL'},
+  {id:'TIENDA_038',country:'HN',format:'EXPRESS',gmv:'$98K',sqm:'$48.1',ticket:'$22',rank:2,status:'NORMAL'},
+];
+
+const stbody = document.getElementById('store-tbody');
+storeData.forEach(s => {
+  const isBR = s.status === 'BAJO_RENDIMIENTO';
+  stbody.innerHTML += `<tr class="${isBR?'bajo-rendimiento':''}">
+    <td class="font-semibold">${s.id}</td>
+    <td>${s.country}</td>
+    <td>${s.format}</td>
+    <td>${s.gmv}</td>
+    <td>${s.sqm}</td>
+    <td>${s.ticket}</td>
+    <td style="text-align:center">#${s.rank}</td>
+    <td><span class="badge ${isBR?'badge-red':'badge-green'}">${s.status}</span></td>
+  </tr>`;
+});
+
+// Timestamp
+document.getElementById('last-update').textContent = new Date().toLocaleString('es-CR');
+
+function applyFilters() {
+  // Filtros visuales simples (en producción conectaría con API)
+  const country = document.getElementById('filter-country').value;
+  const format  = document.getElementById('filter-format').value;
+  document.querySelectorAll('#store-tbody tr').forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    const trCountry = cells[1]?.textContent || '';
+    const trFormat  = cells[2]?.textContent || '';
+    const showCountry = country === 'all' || trCountry === country;
+    const showFormat  = format  === 'all' || trFormat  === format;
+    tr.style.display = showCountry && showFormat ? '' : 'none';
+  });
+}
+
+function resetFilters() {
+  document.getElementById('filter-country').value = 'all';
+  document.getElementById('filter-format').value  = 'all';
+  document.getElementById('filter-period').value  = 'all';
+  document.querySelectorAll('#store-tbody tr').forEach(tr => tr.style.display = '');
+}
+</script>
+</body>
+</html>

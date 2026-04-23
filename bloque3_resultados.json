@@ -1,0 +1,48 @@
+{
+  "ab_test": {
+    "control_gmv": 14108.739523809527,
+    "treatment_gmv": 11713.0475,
+    "diff_abs": -2395.6920238095263,
+    "lift_pct": -16.980198831841932,
+    "pval": 0.24122898962028935,
+    "stat": -1.191563462597069,
+    "ci_low": -5305.823299191596,
+    "ci_high": 514.4392515725431,
+    "significant": false,
+    "comparable_pre": false,
+    "contaminated": [
+      "TIENDA_008",
+      "TIENDA_037"
+    ],
+    "n_control": 18,
+    "n_treatment": 20,
+    "control_ticket": 278.6462395229191,
+    "treatment_ticket": 273.52029746647133,
+    "control_freq": 353.8333333333333,
+    "treatment_freq": 298.5
+  },
+  "top_categories": [
+    "Electrónica",
+    "Hogar"
+  ],
+  "most_seasonal": "EXPRESS",
+  "least_seasonal": "HIPERMERCADO",
+  "total_tx": 171324,
+  "total_gmv": 47740302.93000001,
+  "loyalty_rate": 40.161915435082065,
+  "countries": [
+    "CR",
+    "GT",
+    "HN",
+    "NI",
+    "SV"
+  ],
+  "formats": [
+    "DESCUENTO",
+    "EXPRESS",
+    "HIPERMERCADO",
+    "SUPERMERCADO"
+  ],
+  "total_gaps": 309771,
+  "total_lost_gmv": 339108005.834823
+}
