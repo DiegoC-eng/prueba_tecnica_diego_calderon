@@ -17,7 +17,7 @@
 ### Pregunta 1 — Estacionalidad por Formato
 
 *¿Cómo evoluciona el GMV semanal por formato? ¿Qué formato es más sens ible a la estacionalidad?*  
-🖼️ Ver: `bloque3_visualizaciones/p1_estacionalidad_formato.png`
+Vease: `bloque3_visualizaciones/p1_estacionalidad_formato.png`
 
 #### Hallazgos
 
