@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 North Star Metric
+## North Star Metric**
 
 ### **GMV por Metro Cuadrado Comparable (Comp GMV/m²)**
 
