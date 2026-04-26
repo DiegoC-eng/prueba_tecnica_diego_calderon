@@ -25,3 +25,7 @@ Thumbs.db
 
 # Env
 .env
+
+# Office temp files
+~$*
+
