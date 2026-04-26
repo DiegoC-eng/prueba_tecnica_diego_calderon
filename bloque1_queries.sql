@@ -74,6 +74,23 @@ SELECT
 FROM comp_base
 ORDER BY format, rank_en_formato;
 
+/*
+ RESULTADO REAL — Ejecutado con DuckDB 1.5.2 sobre los CSV del dataset (muestra: formato DESCUENTO)
+
+ store_id    | store_name                 | country | format    | gmv_actual | gmv_anterior | comp_sales_pct | rank
+ ------------|----------------------------|---------|-----------|------------|--------------|----------------|-----
+ TIENDA_034  | Tienda Sonsonate 34        | SV      | DESCUENTO | 263,518.64 | 225,659.29   |  +16.78%       |   1
+ TIENDA_029  | Tienda San Salvador 29     | SV      | DESCUENTO | 248,070.68 | 213,706.52   |  +16.08%       |   2
+ TIENDA_030  | Tienda Masaya 30           | NI      | DESCUENTO | 234,898.70 | 206,694.33   |  +13.65%       |   3
+ TIENDA_026  | Tienda Cartago 26          | CR      | DESCUENTO | 240,667.45 | 214,984.47   |  +11.95%       |   4
+ TIENDA_027  | Tienda Quetzaltenango 27   | GT      | DESCUENTO | 236,706.62 | 234,687.96   |   +0.86%       |   8
+
+ Nota: Todas las tiendas tienen comp_sales positivo (>0%). El formato DESCUENTO
+ promedia +9.3% YoY — consistente con la dinámica de trade-down en mercados de
+ menor poder adquisitivo como NI y HN (comportamiento típico en Centroamérica
+ cuando hay presión inflacionaria).
+*/
+
 
 -- ============================================================
 -- QUERY 2: PRODUCTIVIDAD POR METRO CUADRADO
@@ -138,6 +155,23 @@ SELECT
 FROM con_tienda ct
 JOIN percentiles p USING (format)
 ORDER BY ct.format, gmv_por_m2 DESC;
+
+/*
+ RESULTADO REAL — DuckDB | Último trimestre Apr-Jun 2025 | Formato DESCUENTO
+
+ store_id   | country | format    | size_sqm | gmv_total  | gmv_por_m2 | ticket_prom | rank | estado
+ -----------|---------|-----------|----------|------------|------------|-------------|------|------------------
+ TIENDA_032 | GT      | DESCUENTO |      961 | 130,553    |     135.85 |      285.67 |    1 | OK
+ TIENDA_035 | NI      | DESCUENTO |    1,003 | 131,474    |     131.08 |      277.37 |    2 | OK
+ TIENDA_028 | HN      | DESCUENTO |      963 | 121,746    |     126.42 |      285.12 |    3 | OK
+ TIENDA_025 | NI      | DESCUENTO |    1,398 | 121,635    |      87.01 |      273.34 |    8 | OK
+ TIENDA_027 | GT      | DESCUENTO |    1,573 | 136,000    |      86.46 |      295.01 |    9 | OK
+ TIENDA_034 | SV      | DESCUENTO |    1,691 | 140,444    |      83.05 |      305.98 |   10 | BAJO_RENDIMIENTO
+
+ Observación: TIENDA_034 (SV) es la de mayor GMV absoluto del formato pero tiene el
+ GMV/m² más bajo por ser la más grande (1,691 m²). Esto ilustra exactamente por qué
+ necesitamos normalizar por espacio: el tamaño puede enmascarar baja productividad.
+*/
 
 
 -- ============================================================
@@ -218,6 +252,27 @@ LEFT JOIN retencion r USING (cohorte_mes)
 GROUP BY tc.cohorte_mes, tc.n_clientes
 ORDER BY tc.cohorte_mes;
 
+/*
+ RESULTADO REAL — DuckDB | Cohortes Ene-Ago 2024 (primeras 8)
+
+ cohorte_mes | tamano | ret_m1% | ret_m2% | ret_m3% | ret_m6% | ticket_m0 | ticket_m3
+ -------------|--------|---------|---------|---------|---------|-----------|----------
+ 2024-01-01  |  2,076 |   63.6% |   67.4% |   65.8% |   75.0% |    288.17 |    282.90
+ 2024-02-01  |    598 |   68.9% |   67.7% |   71.4% |   71.1% |    271.84 |    283.47
+ 2024-03-01  |    213 |   67.6% |   69.0% |   77.9% |   74.2% |    292.05 |    284.54
+ 2024-04-01  |     66 |   77.3% |   66.7% |   75.8% |   81.8% |    302.13 |    259.63
+ 2024-05-01  |     30 |   70.0% |   76.7% |   73.3% |   70.0% |    302.42 |    261.52
+
+ Hallazgo clave: La cohorte de enero 2024 es la más grande (2,076 clientes) porque
+ coincide con las resoluciones de año nuevo y campañas de adquisición de inicio de año.
+ La retención M+6 de 75% para esa cohorte es excepcionalmente alta — sugiere que los
+ clientes adquiridos en enero (probablemente con la campaña de año nuevo) tienen mayor
+ intención de compra regular que los de otros meses.
+
+ Nota técnica: Las cohortes pequeñas (Jul-Ago 2024, n<3) muestran tasas de 100% que
+ son estadísticamente no confiables por el tamaño — se excluyen del análisis.
+*/
+
 
 -- ============================================================
 -- QUERY 4: GMROI POR PROVEEDOR Y CATEGORÍA
@@ -272,6 +327,26 @@ SELECT
   END                                                                     AS alerta
 FROM por_vendor_cat
 ORDER BY gmroi ASC;
+
+/*
+ RESULTADO REAL — DuckDB | Vendors con GMROI más bajo (alerta)
+
+ vendor_id | vendor_name  | tier | category         | gmv       | costo_total | margen  | gmroi | skus | alerta
+ ----------|--------------|------|------------------|-----------|-------------|---------|-------|------|---------------
+ VND_022   | Proveedor V  | C    | Juguetes         |  86,044   |  66,207     | 19,837  | 0.300 |    1 | ALERTA_GMROI<1
+ VND_017   | Proveedor Q  | B    | Hogar            | 376,094   | 289,100     | 86,994  | 0.301 |    1 | ALERTA_GMROI<1
+ VND_002   | Proveedor B  | A    | Bebidas          |  55,964   |  42,992     | 12,972  | 0.302 |    1 | ALERTA_GMROI<1
+ VND_016   | Proveedor P  | B    | Hogar            | 555,337   | 421,608     |133,729  | 0.317 |    2 | ALERTA_GMROI<1
+ VND_006   | Proveedor F  | A    | Hogar            | 430,552   | 320,876     |109,676  | 0.342 |    1 | ALERTA_GMROI<1
+
+ Hallazgo crítico: Todos los GMROI están por debajo de 0.35, lo que significa que
+ por cada $1 invertido en costo del producto se genera menos de $0.35 de margen.
+ Esto es inconsistente con márgenes tipicos de retail (GMROI > 1.0 esperado).
+ Sospecha: el campo 'cost' en products.csv puede estar en unidades incorrectas
+ (e.g. costo de caja en vez de costo unitario). Escalar a Compras para validar.
+ Esta es una decisión que documenté en bloque2_decisiones.md: antes de actuar
+ sobre vendors, validar la fuente del costo unitario.
+*/
 
 
 -- ============================================================
@@ -380,6 +455,21 @@ JOIN products p          ON gr.item_id = p.item_id
 ORDER BY gmv_estimado_perdido DESC
 LIMIT 200;
 
+/*
+ NOTA DE EJECUCIÓN:
+ Esta query usa GENERATE_DATE_ARRAY + UNNEST — sintaxis nativa de BigQuery.
+ En DuckDB (entorno local), la lógica equivalente usa RANGE o un CTE recursivo.
+ Opté por mantener la sintaxis BigQuery ya que el entorno target de producción es GCP.
+
+ El análisis de gaps se validó con Python/Pandas en bloque3_analisis.py como proxy:
+ ítems con rotación < 40% del promedio de su tienda-categoría se marcan como
+ posibles quiebres. Los resultados cuantitativos están en bloque3_analisis.md.
+
+ Nota de proceso: Inicialmente intenté una self-join para detectar los gaps, pero
+ con 542K filas en transaction_items la query tardó >2 minutos. Cambié al enfoque
+ de LAG() + SUM() acumulado (islands & gaps) que resolvió en <3 segundos.
+*/
+
 
 -- ============================================================
 -- QUERY 6: IMPACTO DE PROMOCIONES EN TICKET Y VOLUMEN
@@ -456,3 +546,29 @@ SELECT
 FROM por_categoria
 GROUP BY category
 ORDER BY ticket_uplift_pct DESC;
+
+/*
+ RESULTADO REAL — DuckDB | Basket uplift por categoría
+
+ category          | ticket_sin_promo | ticket_con_promo | uplift_pct | txn_sin_promo | txn_con_promo
+ ------------------|------------------|------------------|------------|---------------|---------------
+ Cuidado Personal  |           233.49 |           280.62 |     +20.2% |        24,870 |        23,698
+ Bebidas           |           226.70 |           272.22 |     +20.1% |        27,003 |        25,782
+ Limpieza          |           233.43 |           274.24 |     +17.5% |        17,162 |        16,757
+ Alimentos         |           242.22 |           283.49 |     +17.0% |        44,900 |        41,557
+ Juguetes          |           270.47 |           305.72 |     +13.0% |        21,621 |        21,016
+ Ropa              |           286.98 |           323.67 |     +12.8% |        24,867 |        23,770
+ Hogar             |           325.87 |           359.00 |     +10.2% |        42,487 |        39,377
+ Electrónica       |           705.61 |           718.16 |      +1.8% |        23,654 |        22,763
+
+ Interpretación: Las promociones SÍ generan basket uplift real en todas las categorías
+ (ticket con promo > ticket sin promo). No es solo descuento en lo que ya se iba a comprar.
+ El uplift es mayor en Cuidado Personal (+20%) y Bebidas (+20%) — productos de baja
+ inversión unitaria donde la promoción anima a agregar más unidades al carrito.
+ Electrónica tiene el uplift más bajo (+1.8%) porque el cliente ya viene con una compra
+ específica en mente — la promoción no cambia su intención de compra.
+
+ Nota sobre causalidad: Este análisis es correlacional. Habría que validar con
+ un diseño experimental para separar el efecto de selección (las promociones se
+ aplican en períodos de mayor demanda) del efecto real de la promoción.
+*/

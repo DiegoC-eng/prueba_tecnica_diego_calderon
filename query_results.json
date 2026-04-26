@@ -1,0 +1,442 @@
+{
+  "q1": [
+    {
+      "store_id": "TIENDA_034",
+      "store_name": "Tienda Sonsonate 34",
+      "country": "SV",
+      "format": "DESCUENTO",
+      "gmv_actual": 263518.64,
+      "gmv_anterior": 225659.29,
+      "comp_sales_pct": 16.78,
+      "rank_en_formato": 1
+    },
+    {
+      "store_id": "TIENDA_029",
+      "store_name": "Tienda San Salvador 29",
+      "country": "SV",
+      "format": "DESCUENTO",
+      "gmv_actual": 248070.68,
+      "gmv_anterior": 213706.52,
+      "comp_sales_pct": 16.08,
+      "rank_en_formato": 2
+    },
+    {
+      "store_id": "TIENDA_030",
+      "store_name": "Tienda Masaya 30",
+      "country": "NI",
+      "format": "DESCUENTO",
+      "gmv_actual": 234898.7,
+      "gmv_anterior": 206694.33,
+      "comp_sales_pct": 13.65,
+      "rank_en_formato": 3
+    },
+    {
+      "store_id": "TIENDA_026",
+      "store_name": "Tienda Cartago 26",
+      "country": "CR",
+      "format": "DESCUENTO",
+      "gmv_actual": 240667.45,
+      "gmv_anterior": 214984.47,
+      "comp_sales_pct": 11.95,
+      "rank_en_formato": 4
+    },
+    {
+      "store_id": "TIENDA_033",
+      "store_name": "Tienda La Ceiba 33",
+      "country": "HN",
+      "format": "DESCUENTO",
+      "gmv_actual": 241216.7,
+      "gmv_anterior": 221339.08,
+      "comp_sales_pct": 8.98,
+      "rank_en_formato": 5
+    },
+    {
+      "store_id": "TIENDA_028",
+      "store_name": "Tienda Tegucigalpa 28",
+      "country": "HN",
+      "format": "DESCUENTO",
+      "gmv_actual": 227518.66,
+      "gmv_anterior": 214067.35,
+      "comp_sales_pct": 6.28,
+      "rank_en_formato": 6
+    },
+    {
+      "store_id": "TIENDA_035",
+      "store_name": "Tienda Masaya 35",
+      "country": "NI",
+      "format": "DESCUENTO",
+      "gmv_actual": 245232.85,
+      "gmv_anterior": 232881.38,
+      "comp_sales_pct": 5.3,
+      "rank_en_formato": 7
+    },
+    {
+      "store_id": "TIENDA_027",
+      "store_name": "Tienda Quetzaltenango 27",
+      "country": "GT",
+      "format": "DESCUENTO",
+      "gmv_actual": 236706.62,
+      "gmv_anterior": 234687.96,
+      "comp_sales_pct": 0.86,
+      "rank_en_formato": 8
+    }
+  ],
+  "q2": [
+    {
+      "store_id": "TIENDA_032",
+      "country": "GT",
+      "format": "DESCUENTO",
+      "size_sqm": 961,
+      "gmv_total": 130553.0,
+      "gmv_por_m2": 135.85,
+      "ticket_promedio": 285.67,
+      "rank_formato": 1,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_035",
+      "country": "NI",
+      "format": "DESCUENTO",
+      "size_sqm": 1003,
+      "gmv_total": 131474.0,
+      "gmv_por_m2": 131.08,
+      "ticket_promedio": 277.37,
+      "rank_formato": 2,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_028",
+      "country": "HN",
+      "format": "DESCUENTO",
+      "size_sqm": 963,
+      "gmv_total": 121746.0,
+      "gmv_por_m2": 126.42,
+      "ticket_promedio": 285.12,
+      "rank_formato": 3,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_026",
+      "country": "CR",
+      "format": "DESCUENTO",
+      "size_sqm": 1024,
+      "gmv_total": 122376.0,
+      "gmv_por_m2": 119.51,
+      "ticket_promedio": 287.27,
+      "rank_formato": 4,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_024",
+      "country": "SV",
+      "format": "DESCUENTO",
+      "size_sqm": 1052,
+      "gmv_total": 121244.0,
+      "gmv_por_m2": 115.25,
+      "ticket_promedio": 261.3,
+      "rank_formato": 5,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_033",
+      "country": "HN",
+      "format": "DESCUENTO",
+      "size_sqm": 1069,
+      "gmv_total": 122631.0,
+      "gmv_por_m2": 114.72,
+      "ticket_promedio": 272.51,
+      "rank_formato": 6,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_029",
+      "country": "SV",
+      "format": "DESCUENTO",
+      "size_sqm": 1190,
+      "gmv_total": 130852.0,
+      "gmv_por_m2": 109.96,
+      "ticket_promedio": 283.84,
+      "rank_formato": 7,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_025",
+      "country": "NI",
+      "format": "DESCUENTO",
+      "size_sqm": 1398,
+      "gmv_total": 121635.0,
+      "gmv_por_m2": 87.01,
+      "ticket_promedio": 273.34,
+      "rank_formato": 8,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_027",
+      "country": "GT",
+      "format": "DESCUENTO",
+      "size_sqm": 1573,
+      "gmv_total": 136000.0,
+      "gmv_por_m2": 86.46,
+      "ticket_promedio": 295.01,
+      "rank_formato": 9,
+      "estado": "OK"
+    },
+    {
+      "store_id": "TIENDA_034",
+      "country": "SV",
+      "format": "DESCUENTO",
+      "size_sqm": 1691,
+      "gmv_total": 140444.0,
+      "gmv_por_m2": 83.05,
+      "ticket_promedio": 305.98,
+      "rank_formato": 10,
+      "estado": "BAJO_RENDIMIENTO"
+    }
+  ],
+  "q3": [
+    {
+      "cohorte_mes": "2024-01-01 00:00:00",
+      "tamano_cohorte": 2076,
+      "ret_m1_pct": 63.6,
+      "ret_m2_pct": 67.4,
+      "ret_m3_pct": 65.8,
+      "ret_m6_pct": 75.0,
+      "ticket_m0": 288.17,
+      "ticket_m3": 282.9
+    },
+    {
+      "cohorte_mes": "2024-02-01 00:00:00",
+      "tamano_cohorte": 598,
+      "ret_m1_pct": 68.9,
+      "ret_m2_pct": 67.7,
+      "ret_m3_pct": 71.4,
+      "ret_m6_pct": 71.1,
+      "ticket_m0": 271.84,
+      "ticket_m3": 283.47
+    },
+    {
+      "cohorte_mes": "2024-03-01 00:00:00",
+      "tamano_cohorte": 213,
+      "ret_m1_pct": 67.6,
+      "ret_m2_pct": 69.0,
+      "ret_m3_pct": 77.9,
+      "ret_m6_pct": 74.2,
+      "ticket_m0": 292.05,
+      "ticket_m3": 284.54
+    },
+    {
+      "cohorte_mes": "2024-04-01 00:00:00",
+      "tamano_cohorte": 66,
+      "ret_m1_pct": 77.3,
+      "ret_m2_pct": 66.7,
+      "ret_m3_pct": 75.8,
+      "ret_m6_pct": 81.8,
+      "ticket_m0": 302.13,
+      "ticket_m3": 259.63
+    },
+    {
+      "cohorte_mes": "2024-05-01 00:00:00",
+      "tamano_cohorte": 30,
+      "ret_m1_pct": 70.0,
+      "ret_m2_pct": 76.7,
+      "ret_m3_pct": 73.3,
+      "ret_m6_pct": 70.0,
+      "ticket_m0": 302.42,
+      "ticket_m3": 261.52
+    },
+    {
+      "cohorte_mes": "2024-06-01 00:00:00",
+      "tamano_cohorte": 14,
+      "ret_m1_pct": 78.6,
+      "ret_m2_pct": 57.1,
+      "ret_m3_pct": 64.3,
+      "ret_m6_pct": 85.7,
+      "ticket_m0": 145.73,
+      "ticket_m3": 282.8
+    },
+    {
+      "cohorte_mes": "2024-07-01 00:00:00",
+      "tamano_cohorte": 1,
+      "ret_m1_pct": 100.0,
+      "ret_m2_pct": 100.0,
+      "ret_m3_pct": 100.0,
+      "ret_m6_pct": 100.0,
+      "ticket_m0": 115.3,
+      "ticket_m3": 77.96
+    },
+    {
+      "cohorte_mes": "2024-08-01 00:00:00",
+      "tamano_cohorte": 2,
+      "ret_m1_pct": 100.0,
+      "ret_m2_pct": 50.0,
+      "ret_m3_pct": 50.0,
+      "ret_m6_pct": NaN,
+      "ticket_m0": 214.78,
+      "ticket_m3": 803.36
+    }
+  ],
+  "q4": [
+    {
+      "vendor_id": "VND_022",
+      "vendor_name": "Proveedor V",
+      "vendor_tier": "C",
+      "category": "Juguetes",
+      "gmv": 86044.0,
+      "costo_total": 66207.0,
+      "margen_bruto": 19837.0,
+      "gmroi": 0.3,
+      "skus_activos": 1,
+      "alerta": "ALERTA_GMROI<1"
+    },
+    {
+      "vendor_id": "VND_017",
+      "vendor_name": "Proveedor Q",
+      "vendor_tier": "B",
+      "category": "Hogar",
+      "gmv": 376094.0,
+      "costo_total": 289100.0,
+      "margen_bruto": 86994.0,
+      "gmroi": 0.301,
+      "skus_activos": 1,
+      "alerta": "ALERTA_GMROI<1"
+    },
+    {
+      "vendor_id": "VND_002",
+      "vendor_name": "Proveedor B",
+      "vendor_tier": "A",
+      "category": "Bebidas",
+      "gmv": 55964.0,
+      "costo_total": 42992.0,
+      "margen_bruto": 12972.0,
+      "gmroi": 0.302,
+      "skus_activos": 1,
+      "alerta": "ALERTA_GMROI<1"
+    },
+    {
+      "vendor_id": "VND_021",
+      "vendor_name": "Proveedor U",
+      "vendor_tier": "C",
+      "category": "Cuidado Personal",
+      "gmv": 18412.0,
+      "costo_total": 14097.0,
+      "margen_bruto": 4315.0,
+      "gmroi": 0.306,
+      "skus_activos": 1,
+      "alerta": "ALERTA_GMROI<1"
+    },
+    {
+      "vendor_id": "VND_016",
+      "vendor_name": "Proveedor P",
+      "vendor_tier": "B",
+      "category": "Bebidas",
+      "gmv": 43981.0,
+      "costo_total": 33654.0,
+      "margen_bruto": 10327.0,
+      "gmroi": 0.307,
+      "skus_activos": 2,
+      "alerta": "ALERTA_GMROI<1"
+    },
+    {
+      "vendor_id": "VND_016",
+      "vendor_name": "Proveedor P",
+      "vendor_tier": "B",
+      "category": "Hogar",
+      "gmv": 555337.0,
+      "costo_total": 421608.0,
+      "margen_bruto": 133729.0,
+      "gmroi": 0.317,
+      "skus_activos": 2,
+      "alerta": "ALERTA_GMROI<1"
+    },
+    {
+      "vendor_id": "VND_006",
+      "vendor_name": "Proveedor F",
+      "vendor_tier": "A",
+      "category": "Hogar",
+      "gmv": 430552.0,
+      "costo_total": 320876.0,
+      "margen_bruto": 109676.0,
+      "gmroi": 0.342,
+      "skus_activos": 1,
+      "alerta": "ALERTA_GMROI<1"
+    },
+    {
+      "vendor_id": "VND_019",
+      "vendor_name": "Proveedor S",
+      "vendor_tier": "B",
+      "category": "Juguetes",
+      "gmv": 24954.0,
+      "costo_total": 18501.0,
+      "margen_bruto": 6452.0,
+      "gmroi": 0.349,
+      "skus_activos": 1,
+      "alerta": "ALERTA_GMROI<1"
+    }
+  ],
+  "q6": [
+    {
+      "category": "Cuidado Personal",
+      "ticket_sin_promo": 233.49,
+      "ticket_con_promo": 280.62,
+      "ticket_uplift_pct": 20.18,
+      "txn_sin_promo": 24870,
+      "txn_con_promo": 23698
+    },
+    {
+      "category": "Bebidas",
+      "ticket_sin_promo": 226.7,
+      "ticket_con_promo": 272.22,
+      "ticket_uplift_pct": 20.08,
+      "txn_sin_promo": 27003,
+      "txn_con_promo": 25782
+    },
+    {
+      "category": "Limpieza",
+      "ticket_sin_promo": 233.43,
+      "ticket_con_promo": 274.24,
+      "ticket_uplift_pct": 17.48,
+      "txn_sin_promo": 17162,
+      "txn_con_promo": 16757
+    },
+    {
+      "category": "Alimentos",
+      "ticket_sin_promo": 242.22,
+      "ticket_con_promo": 283.49,
+      "ticket_uplift_pct": 17.04,
+      "txn_sin_promo": 44900,
+      "txn_con_promo": 41557
+    },
+    {
+      "category": "Juguetes",
+      "ticket_sin_promo": 270.47,
+      "ticket_con_promo": 305.72,
+      "ticket_uplift_pct": 13.04,
+      "txn_sin_promo": 21621,
+      "txn_con_promo": 21016
+    },
+    {
+      "category": "Ropa",
+      "ticket_sin_promo": 286.98,
+      "ticket_con_promo": 323.67,
+      "ticket_uplift_pct": 12.79,
+      "txn_sin_promo": 24867,
+      "txn_con_promo": 23770
+    },
+    {
+      "category": "Hogar",
+      "ticket_sin_promo": 325.87,
+      "ticket_con_promo": 359.0,
+      "ticket_uplift_pct": 10.17,
+      "txn_sin_promo": 42487,
+      "txn_con_promo": 39377
+    },
+    {
+      "category": "Electrónica",
+      "ticket_sin_promo": 705.61,
+      "ticket_con_promo": 718.16,
+      "ticket_uplift_pct": 1.78,
+      "txn_sin_promo": 23654,
+      "txn_con_promo": 22763
+    }
+  ]
+}

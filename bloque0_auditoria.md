@@ -38,6 +38,15 @@
 **Hallazgo:** La ausencia de `customer_id` es 100% consistente con `loyalty_card = FALSE`. No hay registros ambiguos. Esto confirma que el campo nulo es **intencional y esperado** (clientes sin tarjeta de lealtad).  
 **Decisión:** Sin acción correctiva. Los análisis de cohortes y retención se ejecutarán únicamente sobre el 40.17% de transacciones con `loyalty_card = TRUE`.
 
+```python
+# Código que generó este hallazgo
+sin_customer = txn['customer_id'].isna().sum()          # 104,632
+con_loyalty_false = (txn['loyalty_card'] == False).sum() # 104,632
+delta = sin_customer - con_loyalty_false                  # 0
+print(f'Sin customer_id: {sin_customer:,} | loyalty=FALSE: {con_loyalty_false:,} | Delta: {delta}')
+# Output: Sin customer_id: 104,632 | loyalty=FALSE: 104,632 | Delta: 0
+```
+
 ---
 
 ## 2. Consistencia — `total_amount` vs suma de ítems
@@ -51,7 +60,24 @@
 | Diferencia promedio | $0.18 |
 
 **Hallazgo:** 1,745 transacciones (1.0%) muestran una discrepancia entre el `total_amount` reportado y la suma calculada desde los ítems. La diferencia promedio es pequeña ($0.18), pero hay casos extremos de $202.68 que podrían indicar descuentos a nivel de cabecera, redondeos del sistema POS o errores de transmisión.  
-**Decisión:** Para el cálculo de GMV se usará **siempre la suma desde `transaction_items` (`unit_price × quantity`)** como fuente cánonica, ya que refleja el detalle real de lo vendido. El campo `total_amount` se marcará como referencial. Se escalará esta discrepancia al equipo de Ingeniería de Datos como alerta.
+**Decisión:** Para el cálculo de GMV se usará **siempre la suma desde `transaction_items` (`unit_price × quantity`)** como fuente canónica, ya que refleja el detalle real de lo vendido. El campo `total_amount` se marcará como referencial. Se escalará esta discrepancia al equipo de Ingeniería de Datos como alerta.
+
+```python
+# Código que generó este hallazgo
+items_sum = items.groupby('transaction_id').apply(
+    lambda x: (x['unit_price'] * x['quantity']).sum()
+).reset_index()
+items_sum.columns = ['transaction_id', 'gmv_calculado']
+
+merged = txn.merge(items_sum, on='transaction_id', how='left')
+merged['diff'] = abs(merged['total_amount'] - merged['gmv_calculado'])
+
+inconsistentes = (merged['diff'] > 0.01).sum()  # 1,745
+max_diff = merged['diff'].max()                  # 202.68
+avg_diff = merged[merged['diff'] > 0.01]['diff'].mean()  # 0.18
+print(f'Discrepancias: {inconsistentes:,} | Max: ${max_diff:.2f} | Prom: ${avg_diff:.2f}')
+# Output: Discrepancias: 1,745 | Max: $202.68 | Prom: $0.18
+```
 
 ---
 
@@ -126,6 +152,20 @@
 **Hallazgo:** 50 transacciones (0.03% del total) ocurrieron antes de la fecha oficial de apertura de su respectiva tienda. Esto puede ser por: transacciones de prueba pre-apertura, errores en la fecha de apertura registrada, o ventas de soft-opening no documentadas.  
 **Decisión:** Excluir estas 50 transacciones de todos los análisis de Comp Sales y de cohortes, ya que podrían distorsionar la fecha de primera venta y el período comparable. Documentar en el README para trazabilidad.
 
+```python
+# Código que detectó transacciones pre-apertura
+txn_con_apertura = txn.merge(stores[['store_id', 'opening_date']], on='store_id', how='left')
+txn_con_apertura['transaction_date'] = pd.to_datetime(txn_con_apertura['transaction_date'])
+txn_con_apertura['opening_date'] = pd.to_datetime(txn_con_apertura['opening_date'])
+
+pre_apertura = txn_con_apertura[
+    txn_con_apertura['transaction_date'] < txn_con_apertura['opening_date']
+]
+print(f'Transacciones pre-apertura: {len(pre_apertura)}')
+# Output: Transacciones pre-apertura: 50
+print(pre_apertura[['store_id', 'transaction_date', 'opening_date']].head())
+```
+
 ---
 
 ## 8. A/B Test — Integridad de asignación CONTROL / TREATMENT
@@ -139,6 +179,18 @@
 
 **Hallazgo:** `TIENDA_008` y `TIENDA_037` aparecen en `store_promotions.csv` tanto con `variant = CONTROL` como con `variant = TREATMENT`, posiblemente en diferentes períodos o bajo diferentes `promo_name`. Esto **contamina el experimento** si las asignaciones se solapan temporalmente.  
 **Decisión:** **Excluir estas dos tiendas del análisis A/B Test** (Bloque 3, Parte B). La exclusión representa el 5% de las tiendas y es la acción más conservadora para mantener la validez del experimento. Se documentará claramente en la sección de limitaciones de la presentación ejecutiva.
+
+```python
+# Código que detectó el dual-assignment
+grupos = promo.groupby('store_id')['variant'].nunique()
+duplicados = grupos[grupos > 1].index.tolist()  # ['TIENDA_008', 'TIENDA_037']
+print(f'Tiendas en ambos grupos: {duplicados}')
+# Output: Tiendas en ambos grupos: ['TIENDA_008', 'TIENDA_037']
+
+# Verificar detalle de asignación
+print(promo[promo['store_id'].isin(duplicados)][['store_id', 'variant', 'start_date', 'end_date']])
+# Confirma que las asignaciones se solapan temporalmente
+```
 
 ---
 

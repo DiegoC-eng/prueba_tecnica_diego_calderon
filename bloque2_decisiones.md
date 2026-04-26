@@ -218,4 +218,26 @@ El dashboard usa **vistas materializadas** en BigQuery sobre `fact_sales`, refre
 3. **Verificar filtros de fecha:** ¿Uno usa `transaction_date` y el otro `_loaded_at`? Las 2 horas de retraso pueden crear discrepancias si el corte es a medianoche exacta.
 4. **Rastrear hasta raw:** Comparar contra la tabla de staging (`staging.transactions_raw`) como fuente de verdad.
 5. **Documentar y estandarizar:** Una vez encontrada la causa, actualizar el **Glosario de Métricas** (Data Catalog) con la definición canónica de GMV. Todos los reportes deben consumir la misma vista certificada `reporting.v_daily_gmv`.
-6. **Certificación de reportes:** Solo los reportes que consumen vistas certificadas pueden llamarse “oficiales”. Los reportes ad-hoc que usen tablas raw deben llevar un banner de “no certificado”.
+6. **Certificación de reportes:** Solo los reportes que consumen vistas certificadas pueden llamarse "oficiales". Los reportes ad-hoc que usen tablas raw deben llevar un banner de "no certificado".
+
+---
+
+## D. Decisiones que Cambiaría con Más Tiempo
+
+> *Esta sección documenta las limitaciones del diseño actual y las mejoras que implementaría si el scope lo permitiera.*
+
+### D.1 — Tabla de Hechos de Inventario
+Actualmente el análisis de quiebres de stock infiere OOS desde gaps de ventas en `fact_sales`. Esto es un proxy, no evidencia directa. Con más tiempo diseñaría una tabla `fact_inventory` con snapshots diarios de stock por tienda-SKU. Eso permitiría distinguir entre:
+- "No se vendió porque no había stock" (quiebre real)
+- "No se vendió porque no hubo demanda" (baja rotación)
+
+Esta diferencia es crítica para las decisiones de abastecimiento y la Query 5 no puede responderla solo con datos de ventas.
+
+### D.2 — SCD Tipo 2 para `dim_store`
+Use SCD Tipo 1 en `dim_store` por simplicidad, lo que significa que si una tienda cambia de formato (ej: un Supermercado que se convierte en Hipermercado) perderíamos la historia. Dado que la cadena opera en 5 países con posibles remodelaciones, el Tipo 2 con fechas de vigencia (`valid_from`, `valid_to`) sería más robusto para el análisis histórico de Comp Sales por formato.
+
+### D.3 — Tabla de Hechos de Promoción Separada
+Actualmente las promociones se modelan con un `promo_id` nullable en `fact_sales`. Esto hace difícil calcular el costo de las promociones (cuánto descuento se otorgó) y el ROI de cada campaña. Una tabla `fact_promo_impact` con el descuento en valor absoluto por ítem promocional permitiría un análisis más preciso.
+
+### D.4 — Validación del Costo Unitario
+El campo `cost` en `products.csv` genera GMROI sospechosamente bajo (<0.35). Antes de usar este dato en producción, el primer paso sería una sesión de validación con el equipo de Compras para confirmar si `cost` es costo unitario, costo de caja, o costo promedio ponderado. Actualmente el modelo asume que es costo unitario sin haber podido validarlo.

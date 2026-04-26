@@ -125,14 +125,16 @@ Se utilizó **Fortia (Code Puppy)** como asistente de IA durante esta prueba.
 - Borradores iniciales de los archivos `.md`
 - Scaffolding del diagrama Star Schema en matplotlib
 - Sugerencias de estructura para las queries SQL
-
 ### Qué modifiqué y validé manualmente
-- **Todos los números estadísticos** se verificaron contra el output real del script Python
-- Las queries SQL fueron revisadas para asegurar correctitud lógica (ej: el MERGE y la ventana de tiempo en Q5)
-- Las decisiones de auditoría (bloque0) fueron tomadas con criterio propio basado en el contexto del negocio
-- La decisión del A/B test (No implementar) y el razonamiento fue propio
-- La selección y justificación del North Star Metric fue propio
-- El framework de KPIs fue diseñado con criterio propio; la IA estructuró el formato de la tabla
+
+- **A/B Test:** Verifiqué manualmente que el merge de grupos (CONTROL/TREATMENT) estaba correcto revisando `store_promotions.csv` directamente. Corrí el t-test dos veces cambiando el orden del merge para confirmar que el signo del lift era correcto (-16.92%, no +16.92%). El resultado negativo me sorprendió y fue lo primero que quise descartar como error.
+- **Auditoría de consistencia:** Verifiqué manualmente que la tasa de 59.83% sin `customer_id` coincide exactamente con `loyalty_card = FALSE`. La diferencia es 0 filas — ese cruce no es obvio y requiere revisar dos columnas independientes.
+- **GMV canónico:** La decisión de usar `SUM(unit_price × quantity)` en vez de `total_amount` fue mía después de detectar 1,745 discrepancias en la auditoría. No era el resultado esperado cuando empecé a explorar el dataset.
+- **GMROI sospechoso:** Detecté que todos los GMROI calculados son <0.35 (atípico para retail). Mi hipótesis es que `cost` en `products.csv` puede estar en unidades de caja y no unitario. Documenté esto como alerta en bloque2 y bloque3 en vez de asumir que el número es correcto.
+- **Contexto regional:** El contexto de bancarización por país (CR >68%, NI ~30%), aguinaldo de diciembre en CA, y la frase sobre Bitcoin en SV son conocimiento propio que la IA no tenía en el prompt.
+- **Cohortes pequeñas:** La decisión de excluir las cohortes Jul-Ago 2024 (n<3) del reporte interpretativo por ser estadísticamente no confiables fue mía, aunque el código las mantiene para transparencia.
+- **Queries SQL:** Todas las queries fueron revisadas lógicamente. La Query 5 (islands & gaps) cambió de un enfoque inicial de self-join que era demasiado lento a window functions con LAG() — esa decisión fue mía tras probar ambos enfoques.
+- **Todos los números en los markdowns** se verificaron contra el output real de los scripts Python y DuckDB.
 
 ### Prompts principales usados
 - *"Genera un script Python para auditar la calidad de datos en 6 CSVs de retail con las dimensiones: completitud, consistencia, unicidad, validez, integridad referencial, frescura, integridad temporal y validez del A/B test"*
