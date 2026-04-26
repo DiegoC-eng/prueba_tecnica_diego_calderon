@@ -198,12 +198,12 @@ print(promo[promo['store_id'].isin(duplicados)][['store_id', 'variant', 'start_d
 
 | # | Hallazgo | Severidad | Decisión |
 |---|---|---|---|
-| 1 | 59.8% sin `customer_id` | 🟢 Normal | Intencional — sin acción |
-| 2 | 1,745 discrepancias en `total_amount` | 🟡 Media | Usar suma de ítems como fuente cánonica |
-| 3 | 0 duplicados | 🟢 Limpio | Sin acción |
-| 4A | 3 total_amount ≤ 0 | 🔴 Alta | Excluir de GMV |
-| 4B | 231 unit_price=0 sin promo | 🟡 Media | Excluir de GMROI y ticket |
-| 5 | 1 vendor_id huérfano | 🟡 Media | Excluir de análisis GMROI vendor |
-| 6 | TIENDA_012: 7 días sin datos | 🟡 Media | Excluir días de promedios diarios |
-| 7 | 50 txn antes de opening_date | 🔴 Alta | Excluir de Comp Sales y cohortes |
-| 8 | TIENDA_008 y TIENDA_037 en ambos grupos A/B | 🔴 Crítica | Excluir del A/B Test |
+| 1 | 59.8% sin `customer_id` | Normal | Intencional — sin acción |
+| 2 | 1,745 discrepancias en `total_amount` | Media | Usar suma de ítems como fuente cánonica |
+| 3 | 0 duplicados | Limpio | Sin acción |
+| 4A | 3 total_amount ≤ 0 | Alta | Excluir de GMV |
+| 4B | 231 unit_price=0 sin promo | Media | Excluir de GMROI y ticket |
+| 5 | 1 vendor_id huérfano | Media | Excluir de análisis GMROI vendor |
+| 6 | TIENDA_012: 7 días sin datos | Media | Excluir días de promedios diarios |
+| 7 | 50 txn antes de opening_date | Alta | Excluir de Comp Sales y cohortes |
+| 8 | TIENDA_008 y TIENDA_037 en ambos grupos A/B | Crítica | Excluir del A/B Test |
