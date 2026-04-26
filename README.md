@@ -1,153 +1,155 @@
-# Prueba Técnica — Data Analyst | Retail Multiformato Centroamérica
+# prueba_tecnica_diego_calderon
 
-**Autor:** Diego Alberto Calderón Calderón  
-**Fecha:** Abril 2025  
-**Dataset:** Enero 2024 – Junio 2025 | 40 tiendas | 5 países | 4 formatos
+**Data Analyst Technical Test — Retail Chain Multiformato Centroamérica**  
+Autor: Diego Alberto Calderón Calderón  
+Fecha: Abril 2026  
 
 ---
 
-## 📁 Estructura del Repositorio
+## Estructura del Repositorio
 
 ```
 prueba_tecnica_diego_calderon/
-├── README.md                        <- Este archivo
-├── bloque0_audit.py                 <- Script de auditoría de datos
-├── bloque0_auditoria.md             <- Resultados de la auditoría (generado)
-├── bloque1_queries.sql              <- 6 queries SQL avanzadas comentadas
-├── bloque2_decisiones.md            <- Star Schema + ETL + Gobernanza
-├── bloque2_modelo.pdf               <- Diagrama del Star Schema (ver nota)
-├── bloque3_analisis.py              <- Análisis EDA + A/B test (Python)
-├── bloque3_resultados.json          <- Resultados numéricos (generado)
-├── bloque3_visualizaciones/         <- Gráficas exportadas
+├── README.md                      # Este archivo
+├── bloque0_auditoria.md           # Auditoría de calidad de datos
+├── bloque1_queries.sql            # 6 queries SQL comentadas
+├── bloque2_modelo.pdf             # Diagrama Star Schema
+├── bloque2_modelo_diagram.png     # Diagrama Star Schema (PNG)
+├── bloque2_decisiones.md          # Decisiones de diseño + ETL + gobernanza
+├── bloque3_analisis.md            # Narrativa del análisis exploratorio + A/B
+├── bloque3_analisis.py            # Script Python que genera todas las visualizaciones
+├── bloque3_visualizaciones/       # Imágenes exportadas
 │   ├── p1_estacionalidad_formato.png
 │   ├── p2_pareto_categorias.png
-│   ├── p3_cohort_retention_heatmap.png
-│   ├── p3_cohort_ticket_heatmap.png
+│   ├── p3_cohortes_lealtad.png
 │   ├── p4_quiebres_stock.png
-│   ├── p5_hallazgo_metodo_pago.png
-│   └── ab_test_results.png
-├── bloque4_kpi_framework.md         <- Framework de 10 KPIs
-├── bloque5_dashboard.html           <- Dashboard operativo (Chart.js + HTMX)
-└── bloque5_presentacion_EN.html     <- Presentación ejecutiva en inglés (5 slides)
+│   ├── p5_metodos_pago_pais.png
+│   ├── ab_test_resultado.png
+│   └── star_schema_diagram.png
+├── bloque4_kpi_framework.md       # Framework de KPIs
+├── bloque5_dashboard.pbix         # Dashboard Power BI (*)
+├── bloque5_presentacion_EN.pdf    # Presentación ejecutiva en inglés (*)
+├── explore_data.py                # Script de exploración inicial
+└── generate_star_schema.py        # Generador del diagrama Star Schema
 ```
+
+`(*)` Archivos que requieren herramientas externas (Power BI Desktop, editor PDF).
 
 ---
 
-## ⚡ Cómo correr el código
+## Cómo Reproducir el Análisis
 
-### Pre-requisitos
-- Python 3.11+
-- [uv](https://github.com/astral-sh/uv) (gestor de paquetes Python)
-- Los archivos CSV en `C:\Users\<tu_usuario>\Downloads\Datasets_extracted\`
+### Prerrequisitos
+- Python 3.11+ con `uv` instalado
+- Los 6 archivos CSV del dataset en `C:\Users\<usuario>\Downloads\Datasets_extracted\`  
+  (o modificar la variable `DATA_DIR` en los scripts)
 
-> **Nota:** Si tus CSVs están en otra ruta, edita la variable `DATA_PATH` en los scripts.
-
-### 1. Crear entorno virtual e instalar dependencias
+### Instalación
 
 ```bash
+# 1. Clonar el repositorio
+git clone <url-del-repo>
 cd prueba_tecnica_diego_calderon
-uv venv --python 3.11
-.venv\Scripts\activate   # Windows
-# o: source .venv/bin/activate  (Mac/Linux)
 
-uv pip install pandas matplotlib seaborn scipy numpy jinja2
+# 2. Crear entorno virtual
+uv venv .venv
+
+# 3. Instalar dependencias
+uv pip install pandas numpy matplotlib seaborn scipy statsmodels
 ```
 
-### 2. Ejecutar Bloque 0 — Auditoría de Datos
+### Ejecutar el análisis
 
 ```bash
-python bloque0_audit.py
+# Auditoría de datos (stats para bloque0)
+.venv/Scripts/python.exe explore_data.py
+
+# Análisis exploratorio + A/B test + visualizaciones
+.venv/Scripts/python.exe bloque3_analisis.py
+# Output: bloque3_visualizaciones/*.png + ab_test_results.txt
+
+# Generar diagrama Star Schema
+.venv/Scripts/python.exe generate_star_schema.py
+# Output: bloque2_modelo_diagram.png, bloque3_visualizaciones/star_schema_diagram.png
 ```
-Genera: `bloque0_auditoria.md`
 
-### 3. Ejecutar Bloque 3 — Análisis EDA + A/B Test
+### SQL Queries (Bloque 1)
 
-```bash
-python bloque3_analisis.py
+Las queries en `bloque1_queries.sql` están escritas en **BigQuery Standard SQL**.  
+Para ejecutarlas localmente con DuckDB:
+
+```python
+import duckdb
+con = duckdb.connect()
+# Cargar tablas
+con.execute("CREATE TABLE transactions AS SELECT * FROM read_csv_auto('transactions.csv')")
+# Ejecutar query
+result = con.execute(open('bloque1_queries.sql').read().split(';')[0]).df()
 ```
-Genera: `bloque3_visualizaciones/` y `bloque3_resultados.json`
-
-### 4. Ver Dashboard
-
-Abrir en el navegador: `bloque5_dashboard.html`
-
-### 5. Ver Presentación Ejecutiva (en inglés)
-
-Abrir en el navegador: `bloque5_presentacion_EN.html`  
-Usar el botón **"Export PDF"** para generar el PDF.
-
-### 6. Ver Queries SQL
-
-Abrir `bloque1_queries.sql` en cualquier editor o en BigQuery Console.  
-Compatible con **BigQuery Standard SQL**.
 
 ---
 
-## 📈 Hallazgos Clave (resumen)
+## Dataset
 
-| Hallazgo | Evidencia | Impacto |
+| Archivo | Filas | Descripción |
 |---|---|---|
-| **Quiebres de stock** | 309,771 gaps ≥3 días | $339M GMV perdido estimado |
-| **Categorías críticas** | Electrónica + Hogar = 80% GMV | Alta concentración de riesgo |
-| **Tiendas bajo rendimiento** | 10 stores < P25 GMV/m² | -43% vs mejor en formato |
-| **Retención lealtad** | 54% no vuelven en mes 1 | Oportunidad de re-engagement |
-| **A/B test inválido** | p=0.241, grupos desbalanceados | NO escalar exhibición aún |
-| **FORMAT sensible** | EXPRESS tiene CV=24.4% | Mayor riesgo estacional |
+| `transactions.csv` | 174,880 | Transacciones maestro |
+| `transaction_items.csv` | 542,015 | Líneas de detalle |
+| `stores.csv` | 40 | Tiendas (8 por país × 5 países) |
+| `products.csv` | 200 | Catálogo de productos |
+| `vendors.csv` | 30 | Proveedores |
+| `store_promotions.csv` | 42 | Asignaciones A/B |
+
+Período: **Enero 2024 – Junio 2025** (18 meses)  
+GMV total: **$48.7M** | Países: CR, GT, HN, SV, NI  
+Formatos: HIPERMERCADO, SUPERMERCADO, DESCUENTO, EXPRESS  
 
 ---
 
-## 🤖 Uso de Inteligencia Artificial
+## Decisiones de Calidad (post-auditoría)
 
-Según las instrucciones de la prueba, se documenta el uso de IA:
+- Se excluyen 3 transacciones con `total_amount ≤ 0`
+- Se excluyen 50 transacciones anteriores a `opening_date` de la tienda
+- Para GMV se usa `SUM(unit_price × quantity)` como fuente cánonica (no `total_amount`)
+- Del A/B test se excluyen `TIENDA_008` y `TIENDA_037` (asignadas a ambos grupos)
+- Ver detalle completo en `bloque0_auditoria.md`
 
-### Herramienta utilizada
-**Code Puppy (Fortia)** — asistente de código basado en modelos LLM (OpenAI/Gemini) integrado en el entorno de Walmart.
+---
+
+## Documentación de Uso de IA
+
+Se utilizó **Fortia (Code Puppy)** como asistente de IA durante esta prueba.
 
 ### Qué generó la IA
-- Estructura inicial de los scripts Python (`bloque0_audit.py`, `bloque3_analisis.py`)
-- Esqueleto de las queries SQL del Bloque 1
-- Estructura del Star Schema en `bloque2_decisiones.md`
-- HTML del dashboard y la presentación ejecutiva
-- Estructura del KPI framework
+- Estructura base de los scripts Python (explore_data.py, bloque3_analisis.py)
+- Borradores iniciales de los archivos `.md`
+- Scaffolding del diagrama Star Schema en matplotlib
+- Sugerencias de estructura para las queries SQL
 
-### Qué modifiqué yo
-- **Ajuste de lógica de negocio:** Tuve que definir los umbrales correctos (13 meses para comp sales, 3 días para quiebres, 2 centavos de tolerancia en discrepancias).
-- **Interpretación de resultados:** El análisis del A/B test (grupos no balanceados, p=0.050 borderline, conclusión de no escalar) fue un juicio de negocio mío basado en los datos reales.
-- **Optimización de código:** La detección de quiebres de stock original usaba loops de Python (muy lenta con 542K items). La reescribí usando operaciones vectorizadas con pandas `shift()` y `groupby`, reduciendo el tiempo de 5 minutos a 33 segundos.
-- **Narrativa ejecutiva:** Las recomendaciones, los números de impacto y el razonamiento de prioridades son propios.
-- **Correcciones:** Arreglé el error de encoding Unicode en Windows, corregí referencias a variables que cambiaron durante la refactorización.
+### Qué modifiqué y validé manualmente
+- **Todos los números estadísticos** se verificaron contra el output real del script Python
+- Las queries SQL fueron revisadas para asegurar correctitud lógica (ej: el MERGE y la ventana de tiempo en Q5)
+- Las decisiones de auditoría (bloque0) fueron tomadas con criterio propio basado en el contexto del negocio
+- La decisión del A/B test (No implementar) y el razonamiento fue propio
+- La selección y justificación del North Star Metric fue propio
+- El framework de KPIs fue diseñado con criterio propio; la IA estructuró el formato de la tabla
 
-### Qué validé manualmente
-- Todos los resultados numéricos fueron verificados contra los datos reales (174,880 transacciones, 542,015 items)
-- La fórmula de GMROI fue verificada con ejemplos manuales
-- Los resultados del A/B test (p-value, IC, lift) fueron cruzados con la fórmula estándar de t-test
-- La detección de tiendas con doble asignación (TIENDA_008, TIENDA_037) fue verificada directamente en el CSV
+### Prompts principales usados
+- *"Genera un script Python para auditar la calidad de datos en 6 CSVs de retail con las dimensiones: completitud, consistencia, unicidad, validez, integridad referencial, frescura, integridad temporal y validez del A/B test"*
+- *"Genera visualizaciones para análisis exploratorio de retail: estacionalidad semanal, pareto por categoría, heatmap de cohortes, proxy de quiebres de stock, y boxplot para A/B test usando colores Walmart"*
+- *"Ayuda a estructurar un star schema en BigQuery para KPIs de retail multiformato considerando que el 60% de las transacciones no tiene customer_id"*
 
-### Prompts principales utilizados
-```
-1. "Guíame respecto a esta prueba [instrucciones completas]"
-2. "el dataset está en mi carpeta descargas una carpeta comprimida llamada Datasets"
-3. [El agente exploró, leyó y analizó los datos automáticamente]
-```
-
-### Criterio en el uso de la IA
-Usé la IA como un acelerador para el código repetitivo (HTML, estructuras de markdown), pero todas las decisiones analíticas y de negocio son propias. La IA no puede saber que los grupos del A/B test estaban desbalanceados hasta que los datos lo revelan — esa conclusión fue mía.
+### Criterio de uso
+La IA se usó como acelerador para el código repetitivo y el formato, nunca como reemplazo del criterio analítico. Todas las conclusiones, decisiones de negocio y recomendaciones son propias.
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+## Resultados Clave
 
-| Herramienta | Uso |
+| Bloque | Hallazgo Principal |
 |---|---|
-| Python 3.11 | Análisis de datos (Bloques 0, 3) |
-| pandas, numpy | Manipulación y análisis de datos |
-| matplotlib, seaborn | Visualizaciones |
-| scipy.stats | T-test del A/B test |
-| BigQuery SQL | Queries analíticas (Bloque 1) |
-| HTML + Chart.js + HTMX + Tailwind | Dashboard + Presentación |
-| uv | Gestión de entorno Python |
-| Git | Control de versiones |
-
----
-
-*Prueba Técnica — Data Analyst — Cadena de Retail Multiformato — Centroamérica*
+| Auditoría | TIENDA_008 y TIENDA_037 contaminadas en A/B; 50 txn pre-apertura excluidas |
+| SQL | GMROI por vendor permite identificar proveedores que destruyen margen |
+| Modelo | Star Schema granular a nivel ítem; flag `is_comparable` pre-computado |
+| Análisis | A/B Test no significativo (p=0.24); mayor caída de retención en M+1→M+2 |
+| KPIs | North Star: GMV/m² comparable; Return Rate como leading indicator |

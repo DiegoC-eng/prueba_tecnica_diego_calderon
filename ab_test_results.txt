@@ -1,0 +1,9 @@
+n_control=18
+n_treatment=20
+mean_control=14449.7231
+mean_treatment=12004.9821
+diff_abs=-2444.7410
+lift_pct=-16.9189
+p_value=0.242415
+ci_low=-6475.9553
+ci_high=1586.4734

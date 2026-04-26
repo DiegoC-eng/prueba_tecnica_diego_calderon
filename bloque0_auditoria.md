@@ -1,310 +1,157 @@
 # Bloque 0 — Auditoría de Calidad de Datos
 
-**Herramienta:** DuckDB (compatible con BigQuery)
-**Dataset:** 6 archivos CSV — prueba técnica retail
-**Fecha:** Abril 2026
-**Analista:** Diego Calderón
+**Autor:** Diego Alberto Calderón Calderón  
+**Dataset:** Cadena Retail Multiformato Centroamérica — Ene 2024 – Jun 2025  
+**Herramienta:** Python 3.13 + Pandas 3.0  
+**Fecha de análisis:** Abril 2026  
 
 ---
 
-## Resumen Ejecutivo
+## Resumen del Dataset
 
-| # | Dimensión | Estado | Hallazgo | Acción |
-|---|---|---|---|---|
-| 1 | Completitud | ⚠️ | 59.8% transacciones anónimas | Aceptar — usar `loyalty_card=TRUE` para cohortes |
-| 2 | Consistencia | ⚠️ | 1% discrepancia en `total_amount` | Usar `total_amount` como fuente de verdad del GMV |
-| 3 | Unicidad | ✅ | 0 duplicados en ambas tablas | Sin acción |
-| 4 | Validez | ⚠️ | 3 montos en $0 · 231 precios $0 sin promo | Excluir de GMV y GMROI |
-| 5 | Integridad Referencial | ⚠️ | VND_031 no existe en vendors (5 productos) | Excluir del análisis de GMROI |
-| 6 | Frescura | ⚠️ | TIENDA_012: 7 días sin ventas (sep 2024) | Monitorear — aceptar por ser < 14 días |
-| 7 | Integridad Temporal | 🔴 | TIENDA_037: 50 tx antes de su apertura | Excluir esas 50 transacciones |
-| 8 | Integridad A/B Test | 🔴 | TIENDA_008 y TIENDA_037 en ambos grupos | Excluir ambas tiendas del experimento |
+| Archivo | Filas | Descripción |
+|---|---|---|
+| `transactions.csv` | 174,880 | Transacciones maestro |
+| `transaction_items.csv` | 542,015 | Líneas de detalle |
+| `stores.csv` | 40 | Tiendas (8 por país) |
+| `products.csv` | 200 | Catálogo de productos |
+| `vendors.csv` | 30 | Proveedores |
+| `store_promotions.csv` | 42 | Asignaciones A/B |
+
+**GMV total:** $48,719,262  
+**Período:** 2024-01-01 a 2025-06-30 (547 días)  
+**Países:** CR, GT, HN, NI, SV (8 tiendas c/u)  
+**Formatos:** HIPERMERCADO (8), SUPERMERCADO (15), DESCUENTO (12), EXPRESS (5)  
 
 ---
 
-## 1. Completitud
+## 1. Completitud — `customer_id`
 
-**Pregunta:** ¿Qué porcentaje de transacciones no tiene `customer_id`?
-
-**Query ejecutada:**
-```sql
-SELECT
-  COUNT(*) AS total,
-  COUNTIF(customer_id IS NULL) AS sin_customer_id,
-  ROUND(COUNTIF(customer_id IS NULL) * 100.0 / COUNT(*), 1) AS pct_sin_customer,
-  COUNTIF(loyalty_card = FALSE) AS loyalty_false,
-  COUNTIF(loyalty_card = TRUE)  AS loyalty_true,
-  ROUND(COUNTIF(loyalty_card = TRUE) * 100.0 / COUNT(*), 1) AS pct_con_lealtad
-FROM transactions;
-```
-
-**Resultados reales:**
+**Pregunta:** ¿Qué % de transacciones no tiene `customer_id`? ¿Es consistente con `loyalty_card = FALSE`?
 
 | Métrica | Valor |
 |---|---|
-| Total transacciones | 174,880 |
-| Sin customer_id | 104,632 |
-| % sin customer_id | **59.8%** |
-| loyalty_card = FALSE | 104,632 |
-| loyalty_card = TRUE | 70,248 |
-| % con lealtad | 40.2% |
+| Transacciones sin `customer_id` | 104,632 (59.83%) |
+| Transacciones con `loyalty_card = FALSE` | 104,632 |
+| Diferencia | **0** |
 
-**Observación clave:** `sin_customer_id` y `loyalty_false` son exactamente iguales (104,632). Tiene sentido — si no tienes tarjeta de lealtad, el sistema no puede identificarte.
-
-**Decisión:** ACEPTAR. Los compradores anónimos son parte normal del negocio retail. Para análisis de cohortes y retención de clientes se filtrará con `WHERE loyalty_card = TRUE` (70,248 transacciones identificadas).
+**Hallazgo:** La ausencia de `customer_id` es 100% consistente con `loyalty_card = FALSE`. No hay registros ambiguos. Esto confirma que el campo nulo es **intencional y esperado** (clientes sin tarjeta de lealtad).  
+**Decisión:** Sin acción correctiva. Los análisis de cohortes y retención se ejecutarán únicamente sobre el 40.17% de transacciones con `loyalty_card = TRUE`.
 
 ---
 
-## 2. Consistencia
+## 2. Consistencia — `total_amount` vs suma de ítems
 
-**Pregunta:** ¿El `total_amount` coincide con `SUM(unit_price × quantity)` de los items?
-
-**Query ejecutada:**
-```sql
-WITH suma_items AS (
-  SELECT transaction_id, SUM(unit_price * quantity) AS suma_calculada
-  FROM transaction_items GROUP BY transaction_id
-)
-SELECT
-  COUNT(*) AS transacciones_comparadas,
-  COUNTIF(ABS(t.total_amount - s.suma_calculada) > 0.02) AS con_discrepancia,
-  ROUND(COUNTIF(...) * 100.0 / COUNT(*), 2) AS pct_discrepancia,
-  ROUND(MAX(ABS(t.total_amount - s.suma_calculada)), 2) AS diferencia_maxima
-FROM transactions t JOIN suma_items s USING (transaction_id);
-```
-
-**Resultados reales:**
+**Pregunta:** ¿El `total_amount` en `transactions` coincide con la suma de `unit_price × quantity` en `transaction_items`?
 
 | Métrica | Valor |
 |---|---|
-| Transacciones comparadas | 174,880 |
-| Con discrepancia > $0.02 | 1,745 |
-| % con discrepancia | **1.0%** |
+| Transacciones con discrepancia > $0.01 | **1,745** (1.0%) |
 | Diferencia máxima | $202.68 |
+| Diferencia promedio | $0.18 |
 
-**Observación clave:** El 1% de discrepancia se explica por descuentos aplicados a nivel de ticket completo (no por línea de item) y por redondeos en el sistema de caja. La diferencia máxima de $202.68 corresponde a transacciones con descuentos grandes de membresía.
-
-**Decisión:** ACEPTAR con criterio definido. Se usará `total_amount` como fuente oficial del GMV en todos los análisis. Es el valor registrado por el sistema de punto de venta y refleja lo que el cliente realmente pagó.
-
----
-
-## 3. Unicidad
-
-**Pregunta:** ¿Hay `transaction_id` o `transaction_item_id` duplicados?
-
-**Query ejecutada:**
-```sql
-SELECT 'transactions' AS tabla,
-  COUNT(*) AS total_filas,
-  COUNT(DISTINCT transaction_id) AS ids_unicos,
-  COUNT(*) - COUNT(DISTINCT transaction_id) AS duplicados
-FROM transactions
-UNION ALL
-SELECT 'transaction_items', COUNT(*),
-  COUNT(DISTINCT transaction_item_id),
-  COUNT(*) - COUNT(DISTINCT transaction_item_id)
-FROM transaction_items;
-```
-
-**Resultados reales:**
-
-| Tabla | Total filas | IDs únicos | Duplicados |
-|---|---|---|---|
-| transactions | 174,880 | 174,880 | **0** ✅ |
-| transaction_items | 542,015 | 542,015 | **0** ✅ |
-
-**Decisión:** Sin acción requerida. Las claves primarias son únicas en ambas tablas. Los datos no tienen registros duplicados.
+**Hallazgo:** 1,745 transacciones (1.0%) muestran una discrepancia entre el `total_amount` reportado y la suma calculada desde los ítems. La diferencia promedio es pequeña ($0.18), pero hay casos extremos de $202.68 que podrían indicar descuentos a nivel de cabecera, redondeos del sistema POS o errores de transmisión.  
+**Decisión:** Para el cálculo de GMV se usará **siempre la suma desde `transaction_items` (`unit_price × quantity`)** como fuente cánonica, ya que refleja el detalle real de lo vendido. El campo `total_amount` se marcará como referencial. Se escalará esta discrepancia al equipo de Ingeniería de Datos como alerta.
 
 ---
 
-## 4. Validez
+## 3. Unicidad — Duplicados
 
-**Pregunta:** ¿Hay montos negativos o precios en $0 sin justificación?
-
-### Parte A — Montos de transacciones
-
-**Resultados reales:**
+**Pregunta:** ¿Existen `transaction_id` o `transaction_item_id` duplicados?
 
 | Métrica | Valor |
 |---|---|
-| montos_invalidos (≤ $0) | **3** |
-| montos_negativos (< $0) | 0 |
-| montos_en_cero (= $0) | 3 |
-| Monto mínimo | $0.00 |
-| Monto máximo | $3,701.36 |
-| Monto promedio | $278.59 |
+| `transaction_id` duplicados | **0** |
+| `transaction_item_id` duplicados | **0** |
 
-### Parte B — Precios de items
+**Hallazgo:** El dataset no presenta duplicados en las llaves primarias. ✅  
+**Decisión:** Sin acción correctiva. El pipeline de carga conserva unicidad correctamente.
+
+---
+
+## 4. Validez — Valores fuera de rango
+
+**Pregunta:** ¿Hay `total_amount` negativos o cero? ¿`unit_price = 0` con `was_on_promo = FALSE`?
 
 | Métrica | Valor |
 |---|---|
-| precio_cero_total | 231 |
-| precio_cero SIN promo | **231** ⚠️ |
-| precio_cero CON promo | 0 |
-| % del total de items | 0.04% |
+| `total_amount ≤ 0` | **3** (0.002%) |
+| `unit_price = 0` con `was_on_promo = FALSE` | **231** |
 
-**Observación clave:** Los 231 items con `unit_price = 0` no tienen ninguna promoción asociada. No hay justificación de negocio para precio $0 sin promo — son datos corruptos. Los 3 montos en $0 pueden ser reversos de compra mal registrados.
+**Hallazgo A — total_amount ≤ 0:** Solo 3 transacciones (0.002%) tienen monto cero o negativo. Pueden ser errores de ingreso o transacciones de prueba del sistema POS.  
+**Decisión:** Excluir estas 3 transacciones de todos los cálculos de GMV. Marcarlas como alerta para revisión operativa.
 
-**Decisión:**
-- Excluir las 3 transacciones con `total_amount = 0` del cálculo de GMV
-- Excluir los 231 items con `unit_price = 0` sin promo del cálculo de GMROI
-- Filtros a aplicar:
-  ```sql
-  WHERE total_amount > 0                             -- GMV limpio
-  AND (unit_price > 0 OR was_on_promo = TRUE)        -- GMROI limpio
-  ```
+**Hallazgo B — unit_price = 0 sin promo:** 231 ítems con precio cero sin estar marcados como en promoción. Posibles causas: artículos de cortesa, errores de digitación o categorías de bonificación.  
+**Decisión:** Excluir estos ítems del cálculo de GMROI y ticket promedio. Incluir nota en el dashboard indicando que las cifras excluyen 231 líneas con precio cero.
 
 ---
 
 ## 5. Integridad Referencial
 
-**Pregunta:** ¿Hay IDs en tablas de hechos que no existan en sus tablas maestras?
-
-**Técnica:** `LEFT JOIN + WHERE lado_derecho IS NULL` para detectar huérfanos.
-
-**Resultados reales:**
+**Pregunta:** ¿Hay `store_id` en `transactions` sin registro en `stores`? ¿`vendor_id` en `products` sin registro en `vendors`?
 
 | Verificación | Resultado |
 |---|---|
-| store_id huérfanos en transactions | **0** ✅ |
-| vendor_id huérfanos en products | **1** → `VND_031` |
-| Productos afectados por VND_031 | **5** |
+| `store_id` en transactions ∉ stores | **0** |
+| `vendor_id` en products ∉ vendors | **1** |
+| `item_id` en transaction_items ∉ products | **0** |
 
-**Observación clave:** El proveedor `VND_031` aparece en 5 productos del catálogo pero no tiene registro en la tabla `vendors`. Sin datos del proveedor (nombre, categoría, condiciones comerciales) no es posible calcular el GMROI de esos productos.
-
-**Decisión:**
-- 0 tiendas huérfanas → sin acción
-- Excluir los 5 productos de `VND_031` del análisis de GMROI por proveedor
-- Filtro: `WHERE vendor_id != 'VND_031'`
+**Hallazgo:** Existe **1 `vendor_id` huérfano** en `products.csv` que no tiene entrada correspondiente en `vendors.csv`. Esto significa que hay productos en el catálogo cuyo proveedor es desconocido.  
+**Decisión:** Los productos con este `vendor_id` huérfano se excluirán del análisis de GMROI por proveedor. Se marcarán como `PROVEEDOR_DESCONOCIDO` en las visualizaciones de catálogo. Escalación al equipo de Compras para verificar si es un proveedor nuevo no dado de alta.
 
 ---
 
-## 6. Frescura
+## 6. Frescura — Gaps de tiendas sin transacciones
 
-**Pregunta:** ¿Hay tiendas con días consecutivos sin registrar ventas?
+**Pregunta:** ¿Hay tiendas con días consecutivos sin transacciones?
 
-**Técnica:** Window Function `LAG()` para calcular el gap entre días de venta consecutivos por tienda.
-
-**Resultados reales:**
-
-| Tienda | Gap inicio | Gap fin | Días sin ventas | Severidad |
-|---|---|---|---|---|
-| TIENDA_012 | 2024-09-09 | 2024-09-17 | **7 días** | REVISAR |
-
-**Observación clave:** Solo 1 gap detectado — TIENDA_012 no registró ventas del 10 al 16 de septiembre 2024 (7 días). Las causas posibles son: inventario agotado, cierre por remodelación, festivo regional, o error en el sistema de carga.
-
-**Decisión:** ACEPTAR con nota. El gap es de 7 días, por debajo del umbral crítico de 14 días. No se excluye de los análisis pero se documenta. Si el gap fuera > 14 días se excluiría esa tienda del Comp Sales.
-
-**Criterio de severidad definido:**
-```
-3-7 días  → REVISAR  (investigar causa)
-8-14 días → ALERTA   (probable cierre temporal)
-> 14 días → CRITICO  (excluir de Comp Sales)
-```
-
----
-
-## 7. Integridad Temporal
-
-**Pregunta:** ¿Hay transacciones con fecha anterior a la apertura oficial de la tienda?
-
-**Query ejecutada:**
-```sql
-SELECT t.store_id, DATE(s.opening_date) AS fecha_apertura,
-  MIN(DATE(t.transaction_date)) AS primera_transaccion,
-  COUNT(*) AS tx_antes_apertura
-FROM transactions t
-JOIN stores s ON t.store_id = s.store_id
-WHERE DATE(t.transaction_date) < DATE(s.opening_date)
-GROUP BY t.store_id, s.opening_date;
-```
-
-**Resultados reales:**
-
-| Tienda | Fecha apertura | Primera tx inválida | Tx antes apertura |
-|---|---|---|---|
-| TIENDA_037 | 2024-06-01 | 2024-05-15 | **50** |
-
-**Observación clave:** TIENDA_037 tiene 50 transacciones registradas antes del 1 de junio de 2024, siendo la más antigua del 15 de mayo. Físicamente es imposible vender en una tienda que no ha abierto — son errores de carga de datos, posiblemente registros de prueba del sistema o un error en la `opening_date`.
-
-**Decisión:** EXCLUIR las 50 transacciones de TIENDA_037 previas al 2024-06-01. Filtro:
-```sql
-WHERE DATE(t.transaction_date) >= DATE(s.opening_date)
-```
-
-> **Nota adicional:** TIENDA_037 también aparece contaminada en el A/B Test (ver sección 8). Es la tienda con más problemas de calidad de datos del dataset.
-
----
-
-## 8. Integridad del A/B Test
-
-**Pregunta:** ¿Hay tiendas asignadas simultáneamente a los grupos CONTROL y TREATMENT?
-
-**Query ejecutada:**
-```sql
-WITH variantes AS (
-  SELECT store_id, promo_name,
-    COUNT(DISTINCT variant) AS num_grupos,
-    STRING_AGG(DISTINCT variant ORDER BY variant) AS grupos_asignados
-  FROM promotions
-  GROUP BY store_id, promo_name
-)
-SELECT * FROM variantes WHERE num_grupos > 1;
-```
-
-**Resultados reales:**
-
-| Tienda | Promoción | Grupos asignados | Decisión |
-|---|---|---|---|
-| TIENDA_008 | Exhibicion_Q3_2024 | CONTROL + TREATMENT | EXCLUIR |
-| TIENDA_037 | Exhibicion_Q3_2024 | CONTROL + TREATMENT | EXCLUIR |
-
-**Resumen del experimento (sin contaminadas):**
-
-| Grupo | Tiendas válidas |
+| Métrica | Valor |
 |---|---|
-| TREATMENT | 20 |
-| CONTROL | 18 |
-| **Total válidas** | **38** |
-| Excluidas (contaminadas) | 2 |
+| Tiendas con al menos 1 día sin transacciones | **1** |
+| Tienda con más gaps | `TIENDA_012` (7 días) |
 
-**Observación clave:** Una tienda asignada a ambos grupos no puede atribuir sus resultados a ninguno. Es equivalente a darle a un paciente el medicamento y el placebo al mismo tiempo — el experimento pierde validez estadística. Además, TIENDA_037 ya tiene problemas de integridad temporal, lo que la convierte en la tienda más problemática del dataset.
-
-**Decisión:** EXCLUIR TIENDA_008 y TIENDA_037 de todo el análisis del experimento A/B. El test se analizará con las 38 tiendas válidas (20 TREATMENT vs 18 CONTROL).
+**Hallazgo:** `TIENDA_012` presenta 7 días sin ningún registro de venta a lo largo del período. Las demás 39 tiendas muestran actividad continua. Los 7 días podrían corresponder a cierres por inventario, festivos locales o problemas técnicos de transmisión.  
+**Decisión:** Mantener la tienda en el análisis pero excluir los días con cero transacciones del cálculo de promedios diarios. Estos gaps también podrían generar falsas alarmas en la detección de quiebres de stock (Bloque 1 — Query 5); se aplicará un filtro de mínimo de historial de 7 días antes de clasificar un gap como quiebre.
 
 ---
 
-## Decisiones Consolidadas para Bloques Siguientes
+## 7. Integridad Temporal — Transacciones antes de `opening_date`
 
-Todos los análisis de los Bloques 1, 3 y 5 aplicarán estos filtros base:
+**Pregunta:** ¿Existe alguna tienda con transacciones anteriores a su `opening_date`?
 
-```sql
--- Filtro base para GMV limpio (Bloque 1, 3, 5)
-WHERE t.total_amount > 0
-  AND DATE(t.transaction_date) >= DATE(s.opening_date)
+| Métrica | Valor |
+|---|---|
+| Transacciones antes de `opening_date` | **50** |
 
--- Para análisis de cohortes y retención (Bloque 3)
-AND t.loyalty_card = TRUE
-
--- Para análisis de GMROI por proveedor (Bloque 1 - Query 4)
-AND p.vendor_id != 'VND_031'
-AND (i.unit_price > 0 OR i.was_on_promo = TRUE)
-
--- Para análisis A/B Test (Bloque 3)
-AND t.store_id NOT IN ('TIENDA_008', 'TIENDA_037')
-```
+**Hallazgo:** 50 transacciones (0.03% del total) ocurrieron antes de la fecha oficial de apertura de su respectiva tienda. Esto puede ser por: transacciones de prueba pre-apertura, errores en la fecha de apertura registrada, o ventas de soft-opening no documentadas.  
+**Decisión:** Excluir estas 50 transacciones de todos los análisis de Comp Sales y de cohortes, ya que podrían distorsionar la fecha de primera venta y el período comparable. Documentar en el README para trazabilidad.
 
 ---
 
-## Conteo de Registros Válidos
+## 8. A/B Test — Integridad de asignación CONTROL / TREATMENT
 
-| Tabla | Total original | Excluidos | Válidos para análisis |
+**Pregunta:** ¿Hay tiendas asignadas simultáneamente a CONTROL y TREATMENT?
+
+| Métrica | Valor |
+|---|---|
+| Tiendas en ambos grupos | **2** |
+| Tiendas afectadas | `TIENDA_008`, `TIENDA_037` |
+
+**Hallazgo:** `TIENDA_008` y `TIENDA_037` aparecen en `store_promotions.csv` tanto con `variant = CONTROL` como con `variant = TREATMENT`, posiblemente en diferentes períodos o bajo diferentes `promo_name`. Esto **contamina el experimento** si las asignaciones se solapan temporalmente.  
+**Decisión:** **Excluir estas dos tiendas del análisis A/B Test** (Bloque 3, Parte B). La exclusión representa el 5% de las tiendas y es la acción más conservadora para mantener la validez del experimento. Se documentará claramente en la sección de limitaciones de la presentación ejecutiva.
+
+---
+
+## Resumen Ejecutivo de Decisiones
+
+| # | Hallazgo | Severidad | Decisión |
 |---|---|---|---|
-| transactions | 174,880 | 53 (3 monto $0 + 50 pre-apertura) | **174,827** |
-| transaction_items | 542,015 | 231 (precio $0 sin promo) | **541,784** |
-| Tiendas en A/B test | 40 | 2 (contaminadas) | **38** |
-| Productos en GMROI | ~200 | 5 (VND_031) | **~195** |
-
----
-*Auditoría ejecutada con DuckDB — queries 100% compatibles con BigQuery*
-*Tablas disponibles en: `wmt-ce-core-playground-dev.prueba_tecnica_diego`*
+| 1 | 59.8% sin `customer_id` | 🟢 Normal | Intencional — sin acción |
+| 2 | 1,745 discrepancias en `total_amount` | 🟡 Media | Usar suma de ítems como fuente cánonica |
+| 3 | 0 duplicados | 🟢 Limpio | Sin acción |
+| 4A | 3 total_amount ≤ 0 | 🔴 Alta | Excluir de GMV |
+| 4B | 231 unit_price=0 sin promo | 🟡 Media | Excluir de GMROI y ticket |
+| 5 | 1 vendor_id huérfano | 🟡 Media | Excluir de análisis GMROI vendor |
+| 6 | TIENDA_012: 7 días sin datos | 🟡 Media | Excluir días de promedios diarios |
+| 7 | 50 txn antes de opening_date | 🔴 Alta | Excluir de Comp Sales y cohortes |
+| 8 | TIENDA_008 y TIENDA_037 en ambos grupos A/B | 🔴 Crítica | Excluir del A/B Test |

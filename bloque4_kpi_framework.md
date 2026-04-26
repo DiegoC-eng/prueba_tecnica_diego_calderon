@@ -1,166 +1,170 @@
-# Bloque 4 — Framework de KPIs desde Cero
+# Bloque 4 — Framework de KPIs: Programa de Productividad de Tiendas
 
-**Autor:** Diego A. Calderón C.  
-**Programa:** Mejora de Productividad de Tiendas | Cadena Retail Multiformato CAM
+**Autor:** Diego Alberto Calderón Calderón  
+**Contexto:** Cadena Retail Multiformato Centroamérica | 40 tiendas | 5 países  
+**Objetivo:** Framework desde cero para medir productividad, experiencia del cliente y desempeño de proveedor.  
 
 ---
 
 ## 🎯 North Star Metric
 
-**GMV por Metro Cuadrado (Semanal)**  
-`GMV_sqm = GMV_semanal_tienda / size_sqm`
+### **GMV por Metro Cuadrado Comparable (Comp GMV/m²)**
 
-**Justificación:**  
-Este KPI captura en una sola cifra la productividad real de cada tienda independientemente de su tamaño o formato. Un HIPERMERCADO de 7,000 m² y un SUPERMERCADO de 1,700 m² son directamente comparables. Es la métrica que mejor correlaciona con rentabilidad operativa y es la base de todos los demás KPIs del programa. Además es el KPI que el VP de Operaciones puede ver en 5 segundos y saber si una tienda va bien o mal.
-
----
-
-## Tabla de KPIs
-
-### KPI 1: GMV por Metro Cuadrado (North Star)
-
-| Campo | Detalle |
-|---|---|
-| **Definición** | Ventas brutas totales generadas por cada metro cuadrado de sala de ventas |
-| **Fórmula** | `SUM(total_amount) / size_sqm` donde `status='COMPLETED'` y `total_amount > 0` |
-| **Frecuencia** | Semanal (lunes a domingo), con acumulado mensual |
-| **Fuente de datos** | `fact_transactions` JOIN `dim_store` |
-| **Target sugerido** | P75 del formato en el mismo país. Tiendas < P25 = BAJO_RENDIMIENTO |
-| **¿Cómo detectas dato malo?** | Si GMV/m² cae > 40% respecto a la semana anterior sin cierre de tienda. Si es $0 = tienda sin enviar datos. Si sube > 200% = posible doble conteo. |
+> **Fórmula:** `SUM(gross_revenue_comparable_stores) / SUM(size_sqm_comparable_stores)`  
+> **Frecuencia:** Semanal  
+> **Justificación:**  
+>
+> En retail multiformato con tiendas de tamaños muy distintos (Express vs Hipermercado), el GMV absoluto castiga tiendas pequeñas que pueden ser extraordinariamente eficientes. El **GMV/m²** normaliza por espacio y permite comparar formatos, países y períodos en la misma escala.  
+> El sufijo “Comparable” excluye tiendas con menos de 13 meses de operación, garantizando que el KPI mida mejora real de productividad y no simple expansión de red.  
+> Esta métrica es la que los analistas de Wall Street usan para evaluar retailers; es comprensible para el equipo directivo y directamente accionable por los gerentes de tienda (más ventas por el mismo espacio = mejor surtido, menos quiebres, mejor exhibición).
 
 ---
 
-### KPI 2: Comp Sales Growth % (YoY)
+## 📊 KPIs del Framework
 
-| Campo | Detalle |
-|---|---|
-| **Definición** | Crecimiento de ventas comparables año sobre año, solo tiendas con ≥13 meses de operación |
-| **Fórmula** | `(GMV_periodo_actual - GMV_mismo_periodo_anterior) / GMV_mismo_periodo_anterior * 100` |
-| **Frecuencia** | Mensual y YTD (Year To Date) |
-| **Fuente de datos** | `fact_transactions` JOIN `dim_store` (filtro `is_comparable = TRUE`) |
-| **Target sugerido** | +3% mensual mínimo; +8% para tiendas en mercados de alto crecimiento (GT, SV) |
-| **¿Cómo detectas dato malo?** | Comp Sales > +50% o < -50% sin causa conocida (reapertura, remodelación) = alerta. Verificar que el periodo anterior tenga datos completos. |
+### Dimensión 1: Productividad de Tienda
 
 ---
 
-### KPI 3: Ticket Promedio por Formato
+#### KPI 1 — Comp Sales Growth (YoY)
 
 | Campo | Detalle |
 |---|---|
-| **Definición** | Valor promedio de cada transacción completada, segmentado por formato de tienda |
-| **Fórmula** | `AVG(total_amount)` donde `status='COMPLETED'` y `total_amount > 0` |
+| **Definición** | Crecimiento de ventas en tiendas comparables respecto al mismo período del año anterior |
+| **Fórmula** | `(GMV_período_actual - GMV_período_anterior) / GMV_período_anterior × 100` |
+| **Frecuencia** | Mensual y acumulado YTD |
+| **Fuente** | `fact_sales` JOIN `dim_store` (filtro `is_comparable = TRUE`) |
+| **Target sugerido** | ≥ +5% YoY (en línea con inflación regional CA ~4-6%) |
+| **¿Cómo detectas dato malo?** | Si >20% de tiendas reportan crecimiento exactamente 0% → posible falla en el pipeline de comparación de períodos. Si el KPI sube >30% en un mes sin causa conocida → verificar duplicados en carga. |
+
+---
+
+#### KPI 2 — GMV por Metro Cuadrado (GMV/m²) — *North Star*
+
+| Campo | Detalle |
+|---|---|
+| **Definición** | Ingresos brutos generados por metro cuadrado de sala de ventas |
+| **Fórmula** | `SUM(gross_revenue) / store.size_sqm` |
 | **Frecuencia** | Semanal |
-| **Fuente de datos** | `fact_transactions` JOIN `dim_store` |
-| **Target sugerido** | HIPERMERCADO: >$85 | SUPERMERCADO: >$45 | DESCUENTO: >$25 | EXPRESS: >$15 |
-| **¿Cómo detectas dato malo?** | Ticket promedio < $5 (posible falla en carga, solo items de precio bajo). Ticket > $5,000 en formatos pequeños (transacción atípica o error). |
+| **Fuente** | `fact_sales` JOIN `dim_store` |
+| **Target sugerido** | P50 del formato como mínimo; tiendas en P25 entran a plan de mejora |
+| **¿Cómo detectas dato malo?** | GMV/m² = 0 para una tienda activa → gap de datos. Valor 10x por encima del promedio de su formato → posible doble conteo. |
 
 ---
 
-### KPI 4: Tasa de Retención de Clientes Leales (Mes 3)
+#### KPI 3 — Ticket Promedio por Formato
 
 | Campo | Detalle |
 |---|---|
-| **Definición** | Porcentaje de clientes con tarjeta de lealtad que vuelven a comprar en el 3er mes después de su primera compra |
-| **Fórmula** | `Clientes_cohorte_que_compraron_en_mes_3 / Tamaño_cohorte * 100` |
-| **Frecuencia** | Mensual (se calcula 3 meses en retrospectiva) |
-| **Fuente de datos** | `fact_transactions` + `dim_customer` |
-| **Target sugerido** | ≥30% de retención en mes 3 (benchmark retail CAM) |
-| **¿Cómo detectas dato malo?** | Retención mes 3 > 100% = error de cálculo (customer_id duplicado). Retención = 0% para cohorte grande = falla en captura de loyalty_card. |
-
----
-
-### KPI 5: GMROI por Proveedor (Leading Indicator 📊)
-
-| Campo | Detalle |
-|---|---|
-| **Definición** | Retorno sobre la inversión en inventario por proveedor. KPI predictivo: un GMROI < 1 hoy predice problemas de rentabilidad futuros |
-| **Fórmula** | `(GMV - Costo_Total) / Costo_Total` por vendor+categoría en últimos 90 días |
-| **Frecuencia** | Mensual |
-| **Fuente de datos** | `fact_transaction_items` JOIN `dim_product` JOIN `dim_vendor` |
-| **Target sugerido** | GMROI ≥ 1.5 (margen bruto ≥60% sobre costo). Vendedores con GMROI < 1 = revisión de contrato |
-| **¿Cómo detectas dato malo?** | GMROI = 0 o negativo con GMV alto = `unit_cost` nulo o cero en `products`. GMROI > 10 = posible error en costo unitario. |
-
----
-
-### KPI 6: Tasa de Quiebres de Stock Activos
-
-| Campo | Detalle |
-|---|---|
-| **Definición** | Porcentaje de SKUs activos (vendidos en últimos 30 días) que llevan 3+ días sin ventas en al menos una tienda |
-| **Fórmula** | `SKUs_con_gap_activo_≥3_dias / Total_SKUs_activos * 100` |
-| **Frecuencia** | Diaria (es un leading indicator de ventas perdidas) |
-| **Fuente de datos** | `fact_transaction_items` (ventana rodante de 30 días) |
-| **Target sugerido** | < 5% de SKUs activos con quiebre. Categorias de alimentos: < 3% |
-| **¿Cómo detectas dato malo?** | Tasa de quiebres = 100% = la tienda no envió datos ese día (no hay ventas de nada). Tasa = 0% durante semanas seguidas = posible falla en detección. |
-
----
-
-### KPI 7: Índice de Productividad de Tienda — IPS (KPI Compuesto ⭐)
-
-| Campo | Detalle |
-|---|---|
-| **Definición** | KPI compuesto que combina GMV/m², retención de clientes y Comp Sales para dar una puntuación única de salud de tienda |
-| **Fórmula** | `IPS = (GMV_sqm_score * 0.5) + (Comp_Sales_score * 0.3) + (Retention_score * 0.2)` donde cada score = percentil de la tienda en su formato (0-100) |
-| **Frecuencia** | Mensual |
-| **Fuente de datos** | Calculado a partir de KPI 1, KPI 2 y KPI 4 |
-| **Target sugerido** | IPS ≥ 60 = saludable | 40-60 = atención | < 40 = intervención gerencial |
-| **¿Cómo detectas dato malo?** | IPS de una tienda cambia > 30 puntos en un mes sin evento conocido = revisar los 3 componentes individualmente. |
-
----
-
-### KPI 8: Frecuencia de Compra de Clientes Leales
-
-| Campo | Detalle |
-|---|---|
-| **Definición** | Número promedio de visitas mensuales de clientes con tarjeta de lealtad |
-| **Fórmula** | `COUNT(transaction_id) / COUNT(DISTINCT customer_id)` donde `loyalty_card=TRUE` y `status='COMPLETED'`, agrupado por mes |
-| **Frecuencia** | Mensual |
-| **Fuente de datos** | `fact_transactions` |
-| **Target sugerido** | ≥2.5 visitas/mes para HIPERMERCADO | ≥4 visitas/mes para EXPRESS |
-| **¿Cómo detectas dato malo?** | Frecuencia > 30 visitas/mes por cliente = posible ID compartido o error de registro de loyalty. Frecuencia baja repentina = falla en captura de tarjeta en caja. |
-
----
-
-### KPI 9: GMV de Promociones / GMV Total (Promo Mix)
-
-| Campo | Detalle |
-|---|---|
-| **Definición** | Porcentaje del GMV que fue generado por items en promoción. Mide dependencia del negocio en descuentos |
-| **Fórmula** | `SUM(line_gmv WHERE was_on_promo=TRUE) / SUM(line_gmv_total) * 100` |
+| **Definición** | Valor promedio de una transacción completada, segmentado por formato de tienda |
+| **Fórmula** | `SUM(total_amount_completadas) / COUNT(transaction_id_completadas)` |
 | **Frecuencia** | Semanal |
-| **Fuente de datos** | `fact_transaction_items` |
-| **Target sugerido** | 20-35% del GMV en promo = rango saludable. > 50% = riesgo de erosión de margen |
-| **¿Cómo detectas dato malo?** | Promo Mix = 100% = todos los items marcados como promo (error en flag). Promo Mix = 0% durante una semana de campaña activa = falla en registro de promos. |
+| **Fuente** | `fact_sales` (filtro `is_returned = FALSE`) JOIN `dim_store` |
+| **Target sugerido** | HIPERMERCADO ≥ $350 | SUPERMERCADO ≥ $250 | DESCUENTO ≥ $150 | EXPRESS ≥ $80 |
+| **¿Cómo detectas dato malo?** | Ticket promedio < $5 o > $5,000 en cualquier semana → probable error de POS o transacción de prueba. Comparar con semana anterior; variación > ±30% sin evento documentado es alerta. |
 
 ---
 
-### KPI 10: Velocidad de Venta por SKU (Sell-Through Rate Leading)
+### Dimensión 2: Experiencia del Cliente
+
+---
+
+#### KPI 4 — Tasa de Retención de Clientes Leales (M+1)
 
 | Campo | Detalle |
 |---|---|
-| **Definición** | Unidades vendidas por día por SKU en cada tienda. KPI predictivo: cae antes de un quiebre de stock |
-| **Fórmula** | `SUM(quantity) / COUNT(DISTINCT sale_date)` por item_id + store_id en ventana de 14 días |
-| **Frecuencia** | Diaria (rolling 14 días) |
-| **Fuente de datos** | `fact_transaction_items` |
-| **Target sugerido** | Varía por categoría. Se usa baseline histórico: alerta si cae > 50% vs promedio 8 semanas |
-| **¿Cómo detectas dato malo?** | Velocidad = 0 para item activo = quiebre o sin datos. Pico extremo (10x promedio) = posible promoción no registrada o error de carga de cantidad. |
+| **Definición** | % de clientes con tarjeta de lealtad que realizan al menos 1 compra en el mes siguiente a su primera transacción |
+| **Fórmula** | `COUNT(DISTINCT customer_id que compra en M+1) / COUNT(DISTINCT customer_id en cohorte M) × 100` |
+| **Frecuencia** | Mensual (medición con 1 mes de rezago) |
+| **Fuente** | `fact_sales` JOIN `dim_customer` (filtro `is_identified = TRUE`) |
+| **Target sugerido** | ≥ 35% retención M+1 (benchmark retail Latinoamérica) |
+| **¿Cómo detectas dato malo?** | Retención M+1 = 100% para cualquier cohorte → posible error en la definición de primera transacción. Retención = 0% para una cohorte grande → posible falla en el sistema de lealtad ese mes. |
+
+---
+
+#### KPI 5 — Tasa de Devolución (Return Rate) — *Leading Indicator*
+
+| Campo | Detalle |
+|---|---|
+| **Definición** | Porcentaje de transacciones con `status = RETURNED` sobre el total. Es un indicador predictivo de insatisfacción del cliente antes de que se refleje en ventas. |
+| **Fórmula** | `COUNT(status = 'RETURNED') / COUNT(*) × 100` |
+| **Frecuencia** | Semanal |
+| **Fuente** | `transactions` |
+| **Target sugerido** | ≤ 2.5% (el dataset muestra 2.03% como base) |
+| **¿Cómo detectas dato malo?** | Tasa de devolución > 10% en cualquier tienda en una semana → posible error operativo o de registro. Tasa exactamente igual durante 4 semanas consecutivas → posible que el campo dejó de actualizarse. |
+
+> **Por qué es Leading:** Una devolución refleja una experiencia insatisfactoria ANTES de que el cliente decida no volver. Monitorear la tasa de devolución permite intervención preventiva (training de staff, mejora de calidad de producto) antes de que el KPI de retención caiga.
+
+---
+
+#### KPI 6 — Penetración de Tarjeta de Lealtad
+
+| Campo | Detalle |
+|---|---|
+| **Definición** | % de transacciones donde el cliente usó tarjeta de lealtad (cliente identificado) |
+| **Fórmula** | `COUNT(loyalty_card = TRUE) / COUNT(*) × 100` |
+| **Frecuencia** | Mensual |
+| **Fuente** | `transactions` |
+| **Target sugerido** | ≥ 45% (base actual: 40.17%) |
+| **¿Cómo detectas dato malo?** | Penetración = 0% en cualquier tienda en un día con transacciones → posible falla del sistema de lealtad en esa tienda. Salto súbito a 100% → posible bug en el campo. |
+
+---
+
+### Dimensión 3: Desempeño de Proveedor
+
+---
+
+#### KPI 7 — GMROI por Proveedor
+
+| Campo | Detalle |
+|---|---|
+| **Definición** | Retorno de margen bruto por cada dólar invertido en costo de producto de ese proveedor |
+| **Fórmula** | `(SUM(gross_revenue) - SUM(unit_cost × quantity)) / SUM(unit_cost × quantity)` |
+| **Frecuencia** | Trimestral (revisión con proveedores) |
+| **Fuente** | `fact_sales` JOIN `dim_product` JOIN `dim_vendor` |
+| **Target sugerido** | GMROI ≥ 1.5 para proveedores Tier A; ≥ 1.2 para Tier B; ≥ 1.0 para Tier C |
+| **¿Cómo detectas dato malo?** | GMROI < 0 (imposible si los costos están bien) → verificar que `unit_cost` no sea 0 o negativo. GMROI > 10 para un proveedor grande → posible error en el catálogo de costos. |
+
+---
+
+#### KPI 8 — Índice de Quiebres de Stock Estimados (Est. OOS Rate)
+
+| Campo | Detalle |
+|---|---|
+| **Definición** | % de combinaciones tienda-SKU activos con al menos 1 brecha ≥3 días sin venta en el mes, sobre el total de tienda-SKUs esperados activos |
+| **Fórmula** | `COUNT(store_item pairs con gap ≥3 días) / COUNT(store_item pairs activos) × 100` |
+| **Frecuencia** | Mensual |
+| **Fuente** | Resultado de Query 5 (Bloque 1) + `fact_sales` |
+| **Target sugerido** | ≤ 5% de SKU-tienda con OOS estimado por mes |
+| **¿Cómo detectas dato malo?** | OOS Rate = 100% para una tienda → posible gap de datos, no quiebre real. OOS Rate = 0% durante 2 meses consecutivos en toda la red → posible que la Query 5 no esté corriendo. |
+
+---
+
+#### KPI 9 — Score de Productividad de Tienda (KPI Compuesto) — *KPI Compuesto*
+
+| Campo | Detalle |
+|---|---|
+| **Definición** | Índice sintético que combina GMV/m² normalizado + Tasa de Retención + Comp Sales Growth para clasificar tiendas en cuadrantes de rendimiento |
+| **Fórmula** | `(Z-score de GMV/m² dentro del formato) × 0.5 + (Z-score de Retención M+1) × 0.3 + (Z-score de Comp Sales Growth) × 0.2` |
+| **Frecuencia** | Mensual |
+| **Fuente** | Calculado sobre KPI 2 + KPI 4 + KPI 1 |
+| **Target sugerido** | Score ≥ 0 (por encima de la media del formato); Score < -1 activa plan de intervención |
+| **¿Cómo detectas dato malo?** | Si alguno de los 3 componentes tiene valor nulo → el score será nulo; alertar. Si todas las tiendas tienen score exactamente 0 en un mes → error en el cálculo de Z-score (posible varianza = 0). |
+
+> **Por qué es compuesto:** Ningún KPI aislado cuenta la historia completa. Una tienda puede tener GMV/m² alto pero retención baja (vende mucho pero a clientes que no vuelven). El score compuesto identifica tiendas genuinamente saludables y aquellas con debilidades ocultas.
 
 ---
 
 ## Resumen del Framework
 
-| # | KPI | Dimensión | Tipo | Frecuencia |
-|---|---|---|---|---|
-| 1 | GMV/m² (North Star) | Productividad Tienda | Resultado | Semanal |
-| 2 | Comp Sales % YoY | Productividad Tienda | Resultado | Mensual |
-| 3 | Ticket Promedio | Productividad Tienda | Resultado | Semanal |
-| 4 | Retención Mes 3 | Experiencia Cliente | Resultado | Mensual |
-| 5 | GMROI por Vendor | Desempeño Proveedor | **Leading** | Mensual |
-| 6 | Tasa Quiebres Stock | Productividad Tienda | **Leading** | Diaria |
-| 7 | Índice Productividad (IPS) | Productividad Tienda | **Compuesto** | Mensual |
-| 8 | Frecuencia de Compra | Experiencia Cliente | Resultado | Mensual |
-| 9 | Promo Mix % | Desempeño Proveedor | Resultado | Semanal |
-| 10 | Velocidad de Venta | Desempeño Proveedor | **Leading** | Diaria |
-
-**Leading indicators:** KPI 5, 6, 10 (predicen problemas antes de que impacten el P&L)  
-**KPI Compuesto:** KPI 7 (IPS, calculado a partir de KPI 1, 2 y 4)
+| # | KPI | Dimensión | Tipo | Frecuencia | Target |
+|---|---|---|---|---|---|
+| 1 | Comp Sales Growth YoY | Productividad | Resultado | Mensual | ≥ +5% |
+| 2 | GMV/m² ★ North Star | Productividad | Resultado | Semanal | P50 del formato |
+| 3 | Ticket Promedio por Formato | Productividad | Resultado | Semanal | Por formato |
+| 4 | Retención M+1 Lealtad | Cliente | Resultado | Mensual | ≥ 35% |
+| 5 | Return Rate | Cliente | **Leading** | Semanal | ≤ 2.5% |
+| 6 | Penetración Tarjeta Lealtad | Cliente | Resultado | Mensual | ≥ 45% |
+| 7 | GMROI por Proveedor | Proveedor | Resultado | Trimestral | ≥ 1.2 |
+| 8 | OOS Rate Estimado | Proveedor | Resultado | Mensual | ≤ 5% |
+| 9 | Score Productividad Tienda | Multi | **Compuesto** | Mensual | ≥ 0 |
