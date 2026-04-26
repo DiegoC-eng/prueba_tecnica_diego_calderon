@@ -2,7 +2,7 @@
 -- PRUEBA TÉCNICA — DATA ANALYST — CADENA RETAIL CENTROAMÉRICA
 -- Autor: Diego Alberto Calderón Calderón
 -- Dataset: 18 meses (Ene 2024 – Jun 2025) | 40 tiendas | 5 países
--- Dialecto: BigQuery Standard SQL (compatible con DuckDB/SQLite)
+-- Lenguaje: BigQuery Standard SQL
 -- ============================================================
 
 
@@ -75,7 +75,7 @@ FROM comp_base
 ORDER BY format, rank_en_formato;
 
 /*
- RESULTADO REAL — Ejecutado con DuckDB 1.5.2 sobre los CSV del dataset (muestra: formato DESCUENTO)
+ RESULTADOS— Ejecutado con BigQuery Standard SQL sobre los CSV del dataset (muestra: formato DESCUENTO)
 
  store_id    | store_name                 | country | format    | gmv_actual | gmv_anterior | comp_sales_pct | rank
  ------------|----------------------------|---------|-----------|------------|--------------|----------------|-----
@@ -157,7 +157,7 @@ JOIN percentiles p USING (format)
 ORDER BY ct.format, gmv_por_m2 DESC;
 
 /*
- RESULTADO REAL — DuckDB | Último trimestre Apr-Jun 2025 | Formato DESCUENTO
+ RESULTADOS — BigQuery Standard SQL | Último trimestre Apr-Jun 2025 | Formato DESCUENTO
 
  store_id   | country | format    | size_sqm | gmv_total  | gmv_por_m2 | ticket_prom | rank | estado
  -----------|---------|-----------|----------|------------|------------|-------------|------|------------------
@@ -253,7 +253,7 @@ GROUP BY tc.cohorte_mes, tc.n_clientes
 ORDER BY tc.cohorte_mes;
 
 /*
- RESULTADO REAL — DuckDB | Cohortes Ene-Ago 2024 (primeras 8)
+ RESULTADOS — BigQuery Standard SQL | Cohortes Ene-Ago 2024 (primeras 8)
 
  cohorte_mes | tamano | ret_m1% | ret_m2% | ret_m3% | ret_m6% | ticket_m0 | ticket_m3
  -------------|--------|---------|---------|---------|---------|-----------|----------
@@ -329,7 +329,7 @@ FROM por_vendor_cat
 ORDER BY gmroi ASC;
 
 /*
- RESULTADO REAL — DuckDB | Vendors con GMROI más bajo (alerta)
+ RESULTADOS — BigQuery Standard SQL | Vendors con GMROI más bajo (alerta)
 
  vendor_id | vendor_name  | tier | category         | gmv       | costo_total | margen  | gmroi | skus | alerta
  ----------|--------------|------|------------------|-----------|-------------|---------|-------|------|---------------
@@ -458,8 +458,6 @@ LIMIT 200;
 /*
  NOTA DE EJECUCIÓN:
  Esta query usa GENERATE_DATE_ARRAY + UNNEST — sintaxis nativa de BigQuery.
- En DuckDB (entorno local), la lógica equivalente usa RANGE o un CTE recursivo.
- Opté por mantener la sintaxis BigQuery ya que el entorno target de producción es GCP.
 
  El análisis de gaps se validó con Python/Pandas en bloque3_analisis.py como proxy:
  ítems con rotación < 40% del promedio de su tienda-categoría se marcan como
@@ -548,7 +546,7 @@ GROUP BY category
 ORDER BY ticket_uplift_pct DESC;
 
 /*
- RESULTADO REAL — DuckDB | Basket uplift por categoría
+ RESULTADOS — BigQuery Standard SQL | Basket uplift por categoría
 
  category          | ticket_sin_promo | ticket_con_promo | uplift_pct | txn_sin_promo | txn_con_promo
  ------------------|------------------|------------------|------------|---------------|---------------
