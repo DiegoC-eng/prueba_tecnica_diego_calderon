@@ -402,7 +402,7 @@ results_text = (
     f'Lift: {lift_pct:.1f}%\n'
     f'p-value: {p_value:.4f}\n'
     f'IC 95%: [${ci_low:,.0f}, ${ci_high:,.0f}]\n'
-    f'Significativo: {"SÍ ✅" if p_value < 0.05 else "NO ❌"}'
+    f'Significativo: {"SÍ" if p_value < 0.05 else "NO"}'
 )
 ax2.axis('off')
 ax2.text(0.1, 0.5, results_text, transform=ax2.transAxes,
