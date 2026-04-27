@@ -27,7 +27,7 @@ prueba_tecnica_diego_calderon/
 │   ├── ab_test_resultado.png
 │   └── star_schema_diagram.png
 ├── bloque4_kpi_framework.md       # Framework de KPIs
-├── bloque5_dashboard.pbix         # Dashboard Power BI (*)
+├── bloque5_dashboard.pbix         # Dashboard Power BI (*No integrado)
 ├── bloque5_presentacion_EN.pdf    # Presentación ejecutiva en inglés (*)
 ```
 
