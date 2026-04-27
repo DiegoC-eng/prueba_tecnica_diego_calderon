@@ -160,7 +160,7 @@
 | # | KPI | Dimensión | Tipo | Frecuencia | Target |
 |---|---|---|---|---|---|
 | 1 | Comp Sales Growth YoY | Productividad | Resultado | Mensual | ≥ +5% |
-| 2 | GMV/m² ★ North Star | Productividad | Resultado | Semanal | P50 del formato |
+| 2 | GMV/m² North Star | Productividad | Resultado | Semanal | P50 del formato |
 | 3 | Ticket Promedio por Formato | Productividad | Resultado | Semanal | Por formato |
 | 4 | Retención M+1 Lealtad | Cliente | Resultado | Mensual | ≥ 35% |
 | 5 | Return Rate | Cliente | **Leading** | Semanal | ≤ 2.5% |
