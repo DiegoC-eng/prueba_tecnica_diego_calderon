@@ -144,7 +144,7 @@ Se utilizó **Fortia (Code Puppy)** como asistente de IA durante esta prueba.
 - **GMROI sospechoso:** Detecté que todos los GMROI calculados son <0.35 (atípico para retail). Mi hipótesis es que `cost` en `products.csv` puede estar en unidades de caja y no unitario. Documenté esto como alerta en bloque2 y bloque3 en vez de asumir que el número es correcto.
 - **Cohortes pequeñas:** La decisión de excluir las cohortes Jul-Ago 2024 (n<3) del reporte interpretativo por ser estadísticamente no confiables fue mía, aunque el código las mantiene para transparencia.
 - **Queries SQL:** Todas las queries fueron revisadas lógicamente. La Query 5 (islands & gaps) cambió de un enfoque inicial de self-join que era demasiado lento a window functions con LAG() — esa decisión fue mía tras probar ambos enfoques.
-- **Todos los números en los markdowns** se verificaron contra el output real de los scripts Python y DuckDB.
+
 
 ### Prompts principales usados
 - *"Genera un script Python para auditar la calidad de datos en 6 CSVs de retail con las dimensiones: completitud, consistencia, unicidad, validez, integridad referencial, frescura, integridad temporal y validez del A/B test"*
