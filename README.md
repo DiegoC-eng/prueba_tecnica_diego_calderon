@@ -29,11 +29,9 @@ prueba_tecnica_diego_calderon/
 ├── bloque4_kpi_framework.md       # Framework de KPIs
 ├── bloque5_dashboard.pbix         # Dashboard Power BI (*)
 ├── bloque5_presentacion_EN.pdf    # Presentación ejecutiva en inglés (*)
-├── explore_data.py                # Script de exploración inicial
-└── generate_star_schema.py        # Generador del diagrama Star Schema
 ```
 
-`(*)` Archivos que requieren herramientas externas (Power BI Desktop, editor PDF).
+`(*)` Archivos que requieren herramientas externas (PDF).
 
 ---
 
