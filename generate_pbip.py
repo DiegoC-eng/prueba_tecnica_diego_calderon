@@ -489,7 +489,8 @@ def write_pbip():
         shutil.rmtree(OUT_DIR)
     OUT_DIR.mkdir(parents=True)
 
-    dataset_dir = OUT_DIR / f"{PROJECT_NAME}.Dataset"
+    # PBI Desktop 2.x usa .SemanticModel (no .Dataset)
+    dataset_dir = OUT_DIR / f"{PROJECT_NAME}.SemanticModel"
     report_dir  = OUT_DIR / f"{PROJECT_NAME}.Report"
     dataset_dir.mkdir()
     report_dir.mkdir()
@@ -505,7 +506,8 @@ def write_pbip():
             }
         ],
         "settings": {
-            "enableTmdlSave": False
+            "enableTmdlSave": False,
+            "enableEditorAutoRecovery": False
         }
     }
     (OUT_DIR / f"{PROJECT_NAME}.pbip").write_text(
@@ -518,7 +520,7 @@ def write_pbip():
         json.dumps(bim, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    # 3. .platform para Dataset
+    # 3. .platform para SemanticModel
     platform_dataset = {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
         "metadata": {
@@ -565,11 +567,11 @@ def write_pbip():
         json.dumps(platform_report, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    # 7. definition.pbireport
+    # 7. definition.pbireport — apunta al SemanticModel
     pbireport = {
         "version": "1.0",
         "datasetReference": {
-            "byPath": {"path": f"../{PROJECT_NAME}.Dataset"},
+            "byPath": {"path": f"../{PROJECT_NAME}.SemanticModel"},
             "byConnection": None
         }
     }
