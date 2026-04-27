@@ -20,7 +20,7 @@
 
 ---
 
-## 📊 KPIs del Framework
+## KPIs Framework
 
 ### Dimensión 1: Productividad de Tienda
 
