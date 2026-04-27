@@ -205,10 +205,10 @@ Todos los GMROI calculados en la Query 4 son <0.35, lo que es atípicamente bajo
 
 ---
 
-## NOTAS DE PROCESO
+## NOTAS
 
-Algunas decisiones técnicas que tomé durante el análisis y que no son obvias en el código final:
+Algunas decisiones técnicas que tomé durante el análisis, son las siguientes conclusiones:
 
 - **Fecha de corte del A/B:** Inicié filtrando por `promo_name LIKE 'exhibicion%'` pero encontré que los nombres varíaban. Cambié a filtrar por `promo_type = 'EXHIBICION'` que es más robusto.
 - **GMV canónico:** Usaría `SUM(unit_price × quantity)` en vez de `total_amount` en todo el análisis después de detectar 1,745 discrepancias en la auditoría. Esto me obliga a siempre hacer el JOIN con `transaction_items`, lo que es un trade-off de complejidad pero garantiza consistencia.
-- **Cohortes con n<5:** Las cohortes de Jul-Ago 2024 tienen 1-2 clientes. Tasas de retención de 100% en esos casos no son interpretábles — las excluí del reporte de retención pero se mantienen en el código para transparencia.
+- **Cohortes con n<5:** Las cohortes de Jul-Ago 2024 tienen 1-2 clientes. Tasas de retención de 100% en esos casos no son interpretábles — las excluí del reporte de retención pero se mantienen en el código por integridad de la data.
