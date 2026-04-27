@@ -58,10 +58,12 @@ def m_csv_source(filename, col_types):
 
 def make_table_csv(name, filename, columns):
     """Crea una tabla importada desde CSV."""
+    # DATA_DIR ya tiene backslashes simples; aqui solo necesitamos uno mas
+    full_path = DATA_DIR + "\\" + filename
     m_expr = [
         "let",
         f'    Source = Csv.Document(',
-        f'        File.Contents("{DATA_DIR}\\\\{filename}"),',
+        f'        File.Contents("{full_path}"),',
          '        [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]',
          '    ),',
          '    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true])',
