@@ -75,17 +75,30 @@ uv pip install pandas numpy matplotlib seaborn scipy statsmodels
 
 ### SQL Queries (Bloque 1)
 
-Las queries en `bloque1_queries.sql` están escritas en **BigQuery Standard SQL**.  
-Para ejecutarlas localmente con DuckDB:
+Las queries en `bloque1_queries.sql` están escritas en **BigQuery Standard SQL**.
 
-```python
-import duckdb
-con = duckdb.connect()
-# Cargar tablas
-con.execute("CREATE TABLE transactions AS SELECT * FROM read_csv_auto('transactions.csv')")
-# Ejecutar query
-result = con.execute(open('bloque1_queries.sql').read().split(';')[0]).df()
+**Para ejecutarlas en BigQuery:**
+
+1. Abre [BigQuery Console](https://console.cloud.google.com/bigquery)
+2. Crea un dataset: `retail_cam` en tu proyecto GCP
+3. Carga cada CSV como tabla (Schema: Autodetectar):
+
 ```
+Consola BigQuery > tu-proyecto > retail_cam > Crear tabla
+  Origen: Subir archivo CSV
+  Tablas: transactions, transaction_items, stores, products, vendors, store_promotions
+```
+
+4. Reemplaza el prefijo de tabla en cada query:
+
+```sql
+-- Cambia esto:
+FROM transactions
+-- Por esto:
+FROM `tu-proyecto.retail_cam.transactions`
+```
+
+5. Ejecuta cada query directamente en el editor SQL de BigQuery.
 
 ---
 
